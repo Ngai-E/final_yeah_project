@@ -1,13 +1,43 @@
+<?php
+   include("config.php");
+   session_start();
+   
+   if($_SERVER["REQUEST_METHOD"] == "POST") {
+      // username and password sent from form 
+      
+      $myusername = mysqli_real_escape_string($db,$_POST['username']);
+      $mypassword = mysqli_real_escape_string($db,$_POST['password']); 
+      
+      $sql = "SELECT id FROM admin WHERE username = '$myusername' and passcode = '$mypassword'";
+      $result = mysqli_query($db,$sql);
+      $row = mysqli_fetch_array($result,MYSQLI_ASSOC);
+      $active = $row['active'];
+      
+      $count = mysqli_num_rows($result);
+      
+      // If result matched $myusername and $mypassword, table row must be 1 row
+		
+      if($count == 1) {
+         session_register("myusername");
+         $_SESSION['login_user'] = $myusername;
+         
+         header("location: ../dashboard/dashboard.html");
+      }else {
+         $error = "Your Login Name or Password is invalid";
+      }
+   }
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>Login V9</title>
+	<title>Login to dashboard</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<link rel="stylesheet" type="text/css" href="css/util.css">
 	<link rel="stylesheet" type="text/css" href="css/main.css">
-	<link rel="stylesheet" type="text/css"  href='../style.css' />
+	<link rel="stylesheet" type="text/css"  href="../style.css">
 <!--===============================================================================================-->
 </head>
 <body>
@@ -33,8 +63,10 @@
 					Sign In
 				</span>
 
-				<div class="wrap-input100 validate-input m-b-20" data-validate="Enter username or email">
-					<input class="input100" type="text" name="username" placeholder="username or email">
+				<form method="post">
+					
+					<div class="wrap-input100 validate-input m-b-20" data-validate="enter company name or email">
+					<input class="input100" type="text" name="username" placeholder="company name or email">
 					<span class="focus-input100"></span>
 				</div>
 
@@ -47,6 +79,7 @@
 					<button class="login100-form-btn"  >
 						Sign In
 					</button>
+				</form>>
 				</div>
 
 				

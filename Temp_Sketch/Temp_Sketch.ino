@@ -1,4 +1,5 @@
-
+//the end goal of this code is to send sms on particular intervals
+//and when there is a critical fault on the system
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
@@ -10,6 +11,8 @@ const byte COLS = 3;
 const int buzzer = 13;
 const int gasSensor = A1;
 const int tempSensor = A0;
+const int fuelLevelSensor = A3;
+const int pirSensor = 12;
 int gasValue;
 
 char hexaKeys[ROWS][COLS] = {
@@ -23,10 +26,11 @@ byte rowPins[ROWS] = {9, 8, 7, 6};
 byte colPins[COLS] = {5, 4, 3, };
 
 int analogReadTemp;  // Variable to read the value from Arduino A0
+int fuelLevel;
 float temperature; // variable that receives the converted voltage
 float tempThresholdMax = 30.0;
 float tempThresholdMin = 20.0;
-int smokeThresholdMax = 150;
+int smokeThresholdMax = 400;
 
 Keypad keypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 
@@ -43,17 +47,26 @@ struct Access{
 Access access;
 
 void setup() {
-  Serial.begin(9600);
-  pinMode(buzzer, OUTPUT);
-  lcd.begin();
-  lcd.setCursor(0, 0);
-  // set up the LCD's number of columns and rows:
-//  lcd.begin(16, 2);
-//  // Print a message to the LCD.
-//  lcd.print("BTS id = 123");
+  Serial.begin(9600);    //setting the baud rate of serial monitor
+  pinMode(buzzer, OUTPUT);   //setting the buzzser pin to output
+  lcd.begin();               //setup the LCD display
+  lcd.setCursor(0, 0);    //setting the innitial index of the lcd display to row 1, column 1
+  pinMode(pirSensor,INPUT);  //setting the pirSensor pin to input
+  digitalWrite(pirSensor,LOW);   //innitialising the pirSensor pin to low
+  pinMode(fuelLevelSensor, INPUT);//setting the level pin to input
 }
 
 void loop() {
+  if(digitalRead(pirSensor)==HIGH)  {       //tell the arduino to check the value of the motion sensor 
+      Serial.println("Somebody is around");
+    }
+    else  {
+      Serial.println("Nobody.");
+    }
+    delay(10);
+  fuelLevel = analogRead(fuelLevelSensor); //take a sample of the fuel level
+  Serial.print(fuelLevel); //print the fuel level
+  checkFuelLevel(fuelLevel); //function to determine when to send sms
   analogReadTemp = analogRead(tempSensor);    //Tell the Arduino to read the voltage on pin A0
   gasValue = analogRead(gasSensor);   // Tell the Arduino to read the voltage on pin A1
   temperature = (5.0 * analogReadTemp)/1023.0; // Convert the read value into a voltage
@@ -66,7 +79,6 @@ void loop() {
   lcd.print(temperature);
   lcd.print(char(223));
   lcd.print("C");
-//  gasValue = 1024 - gasValue;     //
   lcd.setCursor(0, 1);
   lcd.print("Gas: ");
   lcd.print(gasValue);
@@ -77,13 +89,8 @@ void loop() {
   else{
     digitalWrite(buzzer, LOW);
   }
+  
   lcd.clear();
-//  // set the cursor to column 3, line 1
-//  lcd.setCursor(3, 1);
-//   // Print the Temperature 
-//   lcd.print("temperature reading is: "); 
-//  lcd.print(Temperature); 
-       
 }
 
 /*
@@ -115,4 +122,23 @@ int checkSmokeState(int gas){
   }
   return 0;
 }
+
+int  checkFuelLevel(int s){
+  if(s >= 1000) {
+   Serial.println("NO FUEL LEFT");
+  return 0;
+  }
+  if(s < 1000 && s >= 600) { 
+   Serial.println("fuel level is too low");
+  return 0;
+  }
+  if(s < 600 && s >= 500) {
+   Serial.println("fuel level is moderate"); 
+  return 1;
+  }
+  if(s < 500) {
+   Serial.println("there is enough fuel in tank");
+   return 1;
+  }
+  }
 
