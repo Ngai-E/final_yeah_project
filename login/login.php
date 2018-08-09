@@ -1,32 +1,4 @@
-<?php
-   include("config.php");
-   session_start();
-   
-   if($_SERVER["REQUEST_METHOD"] == "POST") {
-      // username and password sent from form 
-      
-      $myusername = mysqli_real_escape_string($db,$_POST['username']);
-      $mypassword = mysqli_real_escape_string($db,$_POST['password']); 
-      
-      $sql = "SELECT id FROM admin WHERE username = '$myusername' and passcode = '$mypassword'";
-      $result = mysqli_query($db,$sql);
-      $row = mysqli_fetch_array($result,MYSQLI_ASSOC);
-      $active = $row['active'];
-      
-      $count = mysqli_num_rows($result);
-      
-      // If result matched $myusername and $mypassword, table row must be 1 row
-		
-      if($count == 1) {
-         session_register("myusername");
-         $_SESSION['login_user'] = $myusername;
-         
-         header("location: ../dashboard/dashboard.html");
-      }else {
-         $error = "Your Login Name or Password is invalid";
-      }
-   }
-?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -38,9 +10,44 @@
 	<link rel="stylesheet" type="text/css" href="css/util.css">
 	<link rel="stylesheet" type="text/css" href="css/main.css">
 	<link rel="stylesheet" type="text/css"  href="../style.css">
+	<link rel="shortcut icon" href="../images/favicon.png" />
+        <link href='../css/css.css' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" type="text/css"  href='../css/clear.css' />
+        <link rel="stylesheet" type="text/css"  href='../css/common.css' />
+        <link rel="stylesheet" type="text/css"  href='../css/font-awesome.min.css'/>
+        <link rel="stylesheet" type="text/css"  href='../css/carouFredSel.css' />
+        <link rel="stylesheet" type="text/css"  href='../css/prettyPhoto.css' />
+        <link rel="stylesheet" type="text/css"  href='../css/sm-clean.css' />
+        <link rel="stylesheet" type="text/css"  href='../style.css' />
 <!--===============================================================================================-->
 </head>
 <body>
+
+	<?php
+   require("../config.php");
+   session_start();
+   
+   if($_SERVER["REQUEST_METHOD"] == "POST") {
+      // username and password sent from form 
+   		$myusername = mysqli_real_escape_string($conn,$_POST['username']);
+   		$password = mysqli_real_escape_string($conn,$_POST['pass']);
+		$sql = "SELECT * FROM company_info WHERE password = sha1('$password') && name ='$myusername' ";
+		$result = mysqli_query($conn, $sql);
+
+
+		if (mysqli_num_rows($result) ==1) {
+		    // login
+		 	header("location: ../admin_dashboard/dashboard.php");
+		    
+		} else {
+		    $error = "Your Login Name or Password is invalid";
+         echo '<p>"$error"<p>';
+		}
+		mysqli_close($conn);
+   }
+?>
+
+
 
 	<!-- Menu -->
         <div class="menu-wrapper center-relative">
@@ -55,17 +62,14 @@
             </nav>
         </div>
 	
-	
 	<div class="container-login100" style="background-image: linear-gradient(rgba(196, 102, 0, 0.6), rgba(155, 89, 182, 0.6));">
 		<div class="wrap-login100 p-l-55 p-r-55 p-t-80 p-b-30">
-			<form class="login100-form validate-form" action="../admin_dashboard/dashboard.html" >
+			<form class="login100-form validate-form" action="" method="POST" >
 				<span class="login100-form-title p-b-37">
 					Sign In
 				</span>
-
-				<form method="post">
 					
-					<div class="wrap-input100 validate-input m-b-20" data-validate="enter company name or email">
+					<div class="wrap-input100 validate-input m-b-20" data-validate="enter company name or email" >
 					<input class="input100" type="text" name="username" placeholder="company name or email">
 					<span class="focus-input100"></span>
 				</div>
@@ -79,7 +83,6 @@
 					<button class="login100-form-btn"  >
 						Sign In
 					</button>
-				</form>>
 				</div>
 
 				
@@ -97,6 +100,10 @@
 	
 
 	<div id="dropDownSelect1"></div>
+
+	 	<script type="text/javascript" src="../js/jquery.js"></script>
+        <script type='text/javascript' src='../js/jquery.carouFredSel-6.2.0-packed.js'></script>
+        <script type='text/javascript' src='../js/main.js'></script>
 	
 
 </body>
