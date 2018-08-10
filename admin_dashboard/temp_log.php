@@ -31,6 +31,10 @@
 
     <?php 
       require ('config.php'); //contains the database connection
+
+      /********************************************************************
+      this section selects threshold values from database and outputs
+      ********************************************************************/
       $normal=$error=$warning=$alert=$emergency=$critical = "";//initialising the threshold values
 
       $sql = "SELECT * FROM parameter_threshold WHERE parameter_name = 'temperature' ";//statement to be executed
@@ -52,6 +56,19 @@
       } else {
           echo "0 results";
       }
+      /**********************************************************
+      outputing of threshold values ends here
+      **********************************************************/
+
+      /*******************************************************
+        outputing fault values in the past week begins here
+      *******************************************************/
+        $s = date("l",strtotime("today"));   //takes the date of today and get the day in a string.
+        $d=strtotime("last $s");  //converts the human readable string to date format e.g if today if friday, it will convert
+        $s1 = date("Y-m-d H:i:s", $d); //'last friday' to date in the format specified 'Y-m-d H:i:s'
+      /****************************************************
+        outputing fault values in the past week ends here
+      ****************************************************/
 
       mysqli_close($conn);
 
