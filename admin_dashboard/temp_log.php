@@ -28,6 +28,36 @@
 
   <body>
 
+
+    <?php 
+      require ('config.php'); //contains the database connection
+      $normal=$error=$warning=$alert=$emergency=$critical = "";//initialising the threshold values
+
+      $sql = "SELECT * FROM parameter_threshold WHERE parameter_name = 'temperature' ";//statement to be executed
+
+      $result = mysqli_query($conn, $sql); //execute query
+      
+      if (mysqli_num_rows($result) == 1) {
+          //select the threshold values from the returned string
+         while($row = mysqli_fetch_assoc($result)) {
+            $normal = $row['normal_value'];
+            $warning = $row['warning_value'];
+            $error = $row['error_value'];
+            $critical = $row['critical_value'];
+            $alert = $row['alert_value'];
+            $emergency = $row['emergency'];
+           
+      }
+
+      } else {
+          echo "0 results";
+      }
+
+      mysqli_close($conn);
+
+    ?>
+    
+
   <section id="container" >
       <!-- **********************************************************************************************************************************************************
       TOP BAR CONTENT & NOTIFICATIONS
@@ -67,7 +97,7 @@
                               <tbody>
                               <tr>
                                   <td><a href="basic_table.html#">normal</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone" id="normal_thresh" ><?php echo $normal;?></td>
                                   <th><span class="badge" style="background-color: #27ef17"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">temperature drop below is value is not accepted</span></td>
                                   <td>
@@ -78,7 +108,7 @@
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">warning</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone" id="warning_thresh" > <?php echo $warning;?></td>
                                   <th><span class="badge" style="background-color: #7a9a51"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">temperature increase above this value should signal operator and turn on fan</span></td>
                                   <td>
@@ -89,7 +119,7 @@
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">error</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone" id="error_thresh" ><?php echo $error;?></td>
                                   <th><span class="badge" style="background-color: #41cac0"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">temperature increase above this value should signal operator about possible damage</span></td>
                                   <td>
@@ -100,7 +130,7 @@
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">critical</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone" id="critical_thresh" ><?php echo $critical;?></td>
                                   <th><span class="badge" style="background-color: #2A3542"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">temperature increase above this value should signal operator about possible damage</span></td>
                                   <td>
@@ -111,7 +141,7 @@
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">alert</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone" id="alert_thresh" ><?php echo $alert;?></td>
                                   <th><span class="badge" style="background-color: #FCB322"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">temperature increase above this value should alert operator about possible damage</span></td>
                                   <td>
@@ -122,7 +152,7 @@
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">emergency</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone" id="emerg_thresh"><?php echo $emergency;?></td>
                                   <th><span class="badge" style="background-color: #ff6c60"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">temperature increase above this value should signal operator about possible damage</span></td>
                                   <td>
@@ -230,8 +260,9 @@
     <script type="text/javascript" src="assets/js/gritter/js/jquery.gritter.js"></script>
     <script type="text/javascript" src="assets/js/gritter-conf.js"></script>
     <script src="assets/js/chart-master/Chart.js"></script>
-    
-  <script>
+
+  <script> 
+
       //custom select box
 
       $(function(){

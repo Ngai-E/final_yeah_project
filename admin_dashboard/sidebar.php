@@ -60,7 +60,7 @@
                       </ul>
                   </li>
                   <li class="sub-menu">
-                      <a href="#" >
+                      <a href="add_site.php" >
                           <i class="fa fa-tasks"></i>
                           <span>Add Sites</span>
                       </a>
