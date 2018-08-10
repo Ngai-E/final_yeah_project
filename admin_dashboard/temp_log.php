@@ -69,13 +69,14 @@
         $warning_amount = $error_amount =$critical_amount=$emergency_amount=$alert_amount= 0;
 
         //read the logs from last week
-        $sql = "SELECT * FROM `temp_logs` WHERE `time` > '2018-10-03 15:00:00' ORDER BY `time` ASC" ; //the query
+        $sql = "SELECT * FROM `temp_logs` WHERE `time` > '2018-10-03 15:00:00' && `value` >= 40 ORDER BY `time` ASC" ; //the query
         $number = 1;
         $result = mysqli_query($conn, $sql);//execute query
         $append = "";
         if (mysqli_num_rows($result) > 0) {
             // output data of each row
             while($row = mysqli_fetch_assoc($result)) {
+
                $append .=  ' <tr>
                                   <td>'.$number++. '</td>
                                   <td>'.$row["time"].'</td>';
@@ -118,6 +119,35 @@
       /****************************************************
         outputing fault values in the past week ends here
       ****************************************************/
+
+      /**************************************
+        plotting the graph with values from db
+      ****************************************/
+         $sql = "SELECT * FROM `temp_logs` WHERE `time` > '2018-10-03 15:00:00'"; //query for ploting graph
+         $result = mysqli_query($conn, $sql); //execute query
+         if (mysqli_num_rows($result) > 0) {
+            $setGraph = array();
+            $labelGraph = array();
+            echo "<script> var arraygraph = [];</script>";   //used to plot graph
+            echo "<script> var labelgraph = [];</script>";   //used to plot graph
+            // store the values of temperature in an array
+            while($row = mysqli_fetch_assoc($result)) {
+              echo "<script> arraygraph.push(".$row['value'].");</script>"; 
+              echo "<script> labelgraph.push(' ');</script>"; 
+
+            }
+          }
+
+          else{
+            echo "0 results";
+          }
+
+          // $setGraph = json_encode($setGraph);
+          // $labelGraph = json_encode($labelGraph);
+
+      /*******************************
+        end graph plot
+      **********************************/
 
       mysqli_close($conn);
 
@@ -306,18 +336,17 @@
           $('select.styled').customSelect();
       });
 
+      //function to plot the graph
       var Script = function () {
-        var set = [20,48,40,19,96,27,100,50,200];
-        var label = ["","","","","","","","",""];
         var lineChartData = {
-            labels : label,
+            labels : labelgraph,    //array obtained after reading the database
             datasets : [
                 {
                     fillColor : "rgba(151,187,205,0.5)",
                     strokeColor : "rgba(151,187,205,1)",
                     pointColor : "rgba(151,187,205,1)",
                     pointStrokeColor : "#fff",
-                    data : set
+                    data : arraygraph  //array obtained after reading the database
                 }
             ]
 

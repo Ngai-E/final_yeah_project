@@ -24,6 +24,11 @@ while ($startdate < $enddate) {
   $startdate = strtotime("+1 week", $startdate);
 }
 
+
+$a=array();
+array_push($a,"blue","yellow");
+print_r($a[0]);
+
 //SELECT * FROM `temp_logs` WHERE time > '2018-10-03 15:00:00' ;
 ?>
 
