@@ -66,6 +66,55 @@
         $s = date("l",strtotime("today"));   //takes the date of today and get the day in a string.
         $d=strtotime("last $s");  //converts the human readable string to date format e.g if today if friday, it will convert
         $s1 = date("Y-m-d H:i:s", $d); //'last friday' to date in the format specified 'Y-m-d H:i:s'
+        $warning_amount = $error_amount =$critical_amount=$emergency_amount=$alert_amount= 0;
+
+        //read the logs from last week
+        $sql = "SELECT * FROM `temp_logs` WHERE `time` > '2018-10-03 15:00:00' ORDER BY `time` ASC" ; //the query
+        $number = 1;
+        $result = mysqli_query($conn, $sql);//execute query
+        $append = "";
+        if (mysqli_num_rows($result) > 0) {
+            // output data of each row
+            while($row = mysqli_fetch_assoc($result)) {
+               $append .=  ' <tr>
+                                  <td>'.$number++. '</td>
+                                  <td>'.$row["time"].'</td>';
+                if( $row["value"] >= 40 && $row['value'] < 60  ){
+                  $append .= '<td>warning</td>
+                                  <td><span class="badge" style="background-color: #7a9a51"><b style="visibility: hidden;">5</b></span></td>
+                              </tr> ';
+                  $warning_amount++;
+                }
+                elseif ($row["value"] >= 60 && $row['value'] < 80  ) {
+                  $append .= '<td>error</td>
+                                  <td><span class="badge" style="background-color: #41cac0"><b style="visibility: hidden;">5</b></span></td>
+                              </tr> ';
+                  $error_amount++;
+                }
+                elseif ($row["value"] >= 80 && $row['value'] < 100  ) {
+                  $append .= '<td>critical</td>
+                                  <td><span class="badge" style="background-color: #2A3542"><b style="visibility: hidden;">5</b></span></td>
+                              </tr> ';
+                  $critical_amount++;
+                }
+                elseif ($row["value"] >= 100 && $row['value'] < 200  ) {
+                  $append .= '<td>alert</td>
+                                  <td><span class="badge" style="background-color: #FCB322"><b style="visibility: hidden;">5</b></span></td>
+                              </tr> ';
+                  $alert_amount++;
+                }
+                elseif ($row["value"] >= 200  ) {
+                  $append .= '<td>emergency</td>
+                                  <td><span class="badge" style="background-color: #ff6c60"><b style="visibility: hidden;">5</b></span></td>
+                              </tr> ';
+                  $emergency_amount++;
+                }
+            }
+        } else {
+            echo "0 results";
+        }
+
+
       /****************************************************
         outputing fault values in the past week ends here
       ****************************************************/
@@ -190,11 +239,11 @@
               <div class="content-panel">
                             <h4><i class="fa fa-angle-right"></i>&#32;recent faults in the past week</h4>
                             <div class="showback">
-                              <span class="badge bg-success" style="background-color: #7a9a51">15</span>
-                              <span class="badge bg-info">20</span>
-                              <span class="badge bg-inverse">25</span>
-                              <span class="badge bg-warning">30</span>
-                              <span class="badge bg-important">35</span>
+                              <span class="badge bg-success" style="background-color: #7a9a51"><?php echo $warning_amount; ?></span>
+                              <span class="badge bg-info"><?php echo $error_amount; ?></span>
+                              <span class="badge bg-inverse"><?php echo $critical_amount; ?></span>
+                              <span class="badge bg-warning"><?php echo $alert_amount; ?></span>
+                              <span class="badge bg-important"><?php echo $emergency_amount; ?></span>
                             </div>
                             <hr>
                           <table class="table">
@@ -206,37 +255,8 @@
                                   <th></th>
                               </tr>
                               </thead>
-                              <tbody>
-                              <tr>
-                                  <td>1</td>
-                                  <td>12/03/18;12:30pm</td>
-                                  <td>warning</td>
-                                  <td><span class="badge" style="background-color: #7a9a51"><b style="visibility: hidden;">5</b></span></td>
-                              </tr>
-                              <tr>
-                                  <td>2</td>
-                                  <td>12/03/18;12:30pm</td>
-                                  <td>error</td>
-                                  <td><span class="badge" style="background-color: #41cac0"><b style="visibility: hidden;">5</b></span></td>
-                              </tr>
-                              <tr>
-                                  <td>3</td>
-                                  <td>12/03/18;12:30pm</td>
-                                  <td>critical</td>
-                                  <td><span class="badge" style="background-color: #2A3542"><b style="visibility: hidden;">5</b></span></td>
-                              </tr>
-                              <tr>
-                                  <td>4</td>
-                                  <td>12/03/18;12:30pm</td>
-                                  <td>alert</td>
-                                  <td><span class="badge" style="background-color: #FCB322"><b style="visibility: hidden;">5</b></span></td>
-                              </tr>
-                              <tr>
-                                  <td>5</td>
-                                  <td>12/03/18;12:30pm</td>
-                                  <td>emergency</td>
-                                  <td><span class="badge" style="background-color: #ff6c60"><b style="visibility: hidden;">5</b></span></td>
-                              </tr>
+                              <tbody id="fault_table">
+                                <?php echo $append; ?>
                               </tbody>
                           </table>
                         </div> <!-- end fault over the past week -->
