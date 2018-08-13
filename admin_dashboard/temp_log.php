@@ -142,6 +142,14 @@
             echo "0 results";
           }
 
+          exec("MODE COM5: BAUD=115200 PARITY=N DATA=8 STOP=1", $output, $retval);
+           $fp=fopen("COM5","r+");
+           fputs($fp, "AT+CMGF=1\r");
+           fputs($fp, "AT+CMGS=\"237650931636\"\r");
+           fputs($fp, "message here");
+           fputs($fp, chr(26));
+           fclose($fp);
+
           // $setGraph = json_encode($setGraph);
           // $labelGraph = json_encode($labelGraph);
 

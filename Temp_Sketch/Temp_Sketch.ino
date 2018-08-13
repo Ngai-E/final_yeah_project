@@ -12,6 +12,7 @@ const int buzzer = 13;
 const int gasSensor = A1;
 const int tempSensor = A0;
 const int fuelLevelSensor = A3;
+const int fan = 11;
 const int pirSensor = 12;
 int gasValue;
 
@@ -28,7 +29,7 @@ byte colPins[COLS] = {5, 4, 3, };
 int analogReadTemp;  // Variable to read the value from Arduino A0
 int fuelLevel;
 float temperature; // variable that receives the converted voltage
-float tempThresholdMax = 30.0;
+float tempThresholdMax = 40.0;
 float tempThresholdMin = 20.0;
 int smokeThresholdMax = 400;
 
@@ -52,8 +53,9 @@ void setup() {
   lcd.begin();               //setup the LCD display
   lcd.setCursor(0, 0);    //setting the innitial index of the lcd display to row 1, column 1
   pinMode(pirSensor,INPUT);  //setting the pirSensor pin to input
+  pinMode(fan, OUTPUT);
   digitalWrite(pirSensor,LOW);   //innitialising the pirSensor pin to low
-  pinMode(fuelLevelSensor, INPUT);//setting the level pin to input
+  
 }
 
 void loop() {
@@ -64,13 +66,14 @@ void loop() {
       Serial.println("Nobody.");
     }
     delay(10);
+
+  getTempAndGasAvg();
+
   fuelLevel = analogRead(fuelLevelSensor); //take a sample of the fuel level
   Serial.print(fuelLevel); //print the fuel level
   checkFuelLevel(fuelLevel); //function to determine when to send sms
-  analogReadTemp = analogRead(tempSensor);    //Tell the Arduino to read the voltage on pin A0
-  gasValue = analogRead(gasSensor);   // Tell the Arduino to read the voltage on pin A1
-  temperature = (5.0 * analogReadTemp)/1023.0; // Convert the read value into a voltage
-  temperature /= 0.01;
+  
+  lcd.clear();
   Serial.print("Temperature ");
   Serial.println(temperature);
   Serial.println("Gas Sensor");
@@ -82,15 +85,38 @@ void loop() {
   lcd.setCursor(0, 1);
   lcd.print("Gas: ");
   lcd.print(gasValue);
-  delay(500);
-  if(checkSmokeState(gasValue)){
+
+  if (checkSmokeState()){
     digitalWrite(buzzer, HIGH);
   }
   else{
     digitalWrite(buzzer, LOW);
   }
-  
-  lcd.clear();
+
+  int temperatureState = checkTemperatureState();
+  if (temperatureState){
+    // if above threshold
+    if (temperatureState == 2) {
+      digitalWrite(fan, HIGH);
+      Serial.println("Temperature above Threshold");
+    }
+
+    else {
+      digitalWrite(fan, LOW);
+    }
+    // if below threshold
+    if (temperatureState == 1) {
+      
+    }
+    else {
+      
+    }
+  }
+
+  else {
+    digitalWrite(fan, LOW);
+  }
+
 }
 
 /*
@@ -101,11 +127,11 @@ void loop() {
  *  2 means temperature is above max
  */
 
-int checkTemperatureState(float temp){
-  if(temp > tempThresholdMax){
+int checkTemperatureState(){
+  if(temperature > tempThresholdMax){
     return 2;
   }
-  if(temp < tempThresholdMax){
+  if(temperature < tempThresholdMax){
     return 1;
   }
   return 0;
@@ -116,8 +142,8 @@ int checkTemperatureState(float temp){
  * for smoke 
  * 1 means smoke detected and 0 means no smoke
  */
-int checkSmokeState(int gas){
-  if(gas > smokeThresholdMax){
+int checkSmokeState(){
+  if(gasValue > smokeThresholdMax){
     return 1;
   }
   return 0;
@@ -140,5 +166,29 @@ int  checkFuelLevel(int s){
    Serial.println("there is enough fuel in tank");
    return 1;
   }
+ }
+
+void getTempAndGasAvg(){
+  float temp = 0.0;
+  int gas = 0;
+  for (int i = 0; i < 10; i++) {
+     temp += getTemperature();
+     gas += getGasLevel();
+     delay(500);
   }
+  temperature = temp/10.0;
+  gasValue = gas/10;
+ }
+
+float getTemperature(){
+  analogReadTemp = analogRead(tempSensor);    //Tell the Arduino to read the voltage on pin A0
+  float temp = (5.0 * analogReadTemp)/1023.0; // Convert the read value into a voltage
+  temp /= 0.01;
+  return temp;
+}
+
+int getGasLevel(){
+  int gas = analogRead(gasSensor);   // Tell the Arduino to read the voltage on pin A1
+  return gas;
+}
 
