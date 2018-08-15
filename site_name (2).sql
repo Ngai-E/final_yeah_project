@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 10, 2018 at 09:32 AM
+-- Generation Time: Aug 15, 2018 at 05:27 AM
 -- Server version: 10.1.31-MariaDB
 -- PHP Version: 7.2.3
 
@@ -25,46 +25,29 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `generator_log`
+-- Table structure for table `logs`
 --
 
-CREATE TABLE `generator_log` (
-  `state` enum('ON','OFF') NOT NULL,
-  `time` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `high_low_voltages_logs`
---
-
-CREATE TABLE `high_low_voltages_logs` (
-  `state` enum('HIGH','LOW') NOT NULL,
-  `time` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `level_logs`
---
-
-CREATE TABLE `level_logs` (
+CREATE TABLE `logs` (
+  `parameter_name` varchar(30) NOT NULL,
   `value` float NOT NULL,
   `time` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- --------------------------------------------------------
-
 --
--- Table structure for table `motion_logs`
+-- Dumping data for table `logs`
 --
 
-CREATE TABLE `motion_logs` (
-  `value` tinyint(1) NOT NULL,
-  `time` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+INSERT INTO `logs` (`parameter_name`, `value`, `time`) VALUES
+('temperature', 300, '2018-10-03 15:30:00'),
+('temperature', 200, '2018-10-03 15:35:00'),
+('temperature', 50, '2018-10-01 15:00:00'),
+('temperature', 300, '2018-10-02 16:30:00'),
+('temperature', 100, '2018-10-02 12:30:00'),
+('temperature', 30, '2018-10-04 15:30:00'),
+('temperature', 50, '2018-10-04 15:30:00'),
+('temperature', 45, '2018-10-07 15:30:00'),
+('temperature', 86, '2018-10-07 15:30:00');
 
 -- --------------------------------------------------------
 
@@ -87,7 +70,13 @@ CREATE TABLE `parameter_threshold` (
 --
 
 INSERT INTO `parameter_threshold` (`parameter_name`, `normal_value`, `warning_value`, `error_value`, `critical_value`, `alert_value`, `emergency`) VALUES
-('temperature', 20, 40, 60, 80, 100, 200);
+('temperature', 20, 40, 60, 80, 100, 200),
+('smoke', 20, 40, 60, 80, 100, 200),
+('motion', 21, 20, 10, 5, 2, 0),
+('fuel_level', 500, 250, 150, 100, 50, 10),
+('generator', 1, 0, 0, 0, 0, 0),
+('voltage_level', 1, 0, 2, 2, 2, 2),
+('battery_charge', 100, 50, 30, 20, 10, 5);
 
 -- --------------------------------------------------------
 
@@ -98,28 +87,6 @@ INSERT INTO `parameter_threshold` (`parameter_name`, `normal_value`, `warning_va
 CREATE TABLE `sites` (
   `id` int(11) NOT NULL,
   `name` varchar(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `smoke_logs`
---
-
-CREATE TABLE `smoke_logs` (
-  `value` float NOT NULL,
-  `time` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `temp_logs`
---
-
-CREATE TABLE `temp_logs` (
-  `value` float NOT NULL,
-  `time` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --

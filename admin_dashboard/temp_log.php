@@ -69,7 +69,7 @@
         $warning_amount = $error_amount =$critical_amount=$emergency_amount=$alert_amount= 0;
 
         //read the logs from last week
-        $sql = "SELECT * FROM `temp_logs` WHERE `time` > '2018-10-03 15:00:00' && `value` >= 40 ORDER BY `time` ASC" ; //the query
+        $sql = "SELECT * FROM `logs` WHERE `time` > '2018-10-03 15:00:00' && `value` >= 40 ORDER BY `time` && `parameter_name` = 'temperature' ASC" ; //the query
         $number = 1;
         $result = mysqli_query($conn, $sql);//execute query
         $append = "";
@@ -123,11 +123,9 @@
       /**************************************
         plotting the graph with values from db
       ****************************************/
-         $sql = "SELECT * FROM `temp_logs` WHERE `time` > '2018-10-03 15:00:00'"; //query for ploting graph
+         $sql = "SELECT * FROM `logs` WHERE `time` > '2018-10-03 15:00:00' && `parameter_name` = 'temperature' "; //query for ploting graph
          $result = mysqli_query($conn, $sql); //execute query
          if (mysqli_num_rows($result) > 0) {
-            $setGraph = array();
-            $labelGraph = array();
             echo "<script> var arraygraph = [];</script>";   //used to plot graph
             echo "<script> var labelgraph = [];</script>";   //used to plot graph
             // store the values of temperature in an array
@@ -142,16 +140,6 @@
             echo "0 results";
           }
 
-          exec("MODE COM5: BAUD=115200 PARITY=N DATA=8 STOP=1", $output, $retval);
-           $fp=fopen("COM5","r+");
-           fputs($fp, "AT+CMGF=1\r");
-           fputs($fp, "AT+CMGS=\"237650931636\"\r");
-           fputs($fp, "message here");
-           fputs($fp, chr(26));
-           fclose($fp);
-
-          // $setGraph = json_encode($setGraph);
-          // $labelGraph = json_encode($labelGraph);
 
       /*******************************
         end graph plot

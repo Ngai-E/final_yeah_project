@@ -5,9 +5,9 @@ require_once('class.php');
 
 //Example here my gsm modem in assigned in com3 in my device manager
 
-if(isset($_POST['action'])){
-	$mobile_number=$_POST['mobile_number'];
-	$messages=$_POST['messages'];
+if(1){
+	// $mobile_number=$_POST['mobile_number'];
+	// $messages=$_POST['messages'];
 
 	$gsm_send_sms = new gsm_send_sms();
 	$gsm_send_sms->debug = false;
@@ -15,15 +15,16 @@ if(isset($_POST['action'])){
 	$gsm_send_sms->baud = 9600;
 	$gsm_send_sms->init();
 
-	$status = $gsm_send_sms->send($mobile_number,$messages);
+	// $status = $gsm_send_sms->send($mobile_number,$messages);
 
-	if ($status) {
-		echo $status;
-	} else {
-		echo $status;
-	}
+	// if ($status) {
+	// 	echo $status;
+	// } else {
+	// 	echo $status;
+	// }
+
 	$read = $gsm_send_sms->read();
-	echo $read;
+	//echo $read;
 
 	$gsm_send_sms->close();
 }

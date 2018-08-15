@@ -1,22 +1,44 @@
-$this->debugmsg("Reading inbox");
-		//Start sending of message
-		fputs($this->fp, "AT+CMGL=\"ALL\"\n\r");
-		//Wait for confirmation
-		$status = $this->wait_reply("OK\r\n", 5);
-		//print_r($this->buffer);die;
-		$arr = explode("+CMGL:", $this->buffer);
-		$inbox = null;	
-		for ($i = 1; $i < count($arr); $i++) {
-			$arrItem = explode("\n", $arr[$i], 2);
-			// Header
-			$headArr = explode(",", $arrItem[0]);
-			$fromTlfn = str_replace('"', null, $headArr[2]);
-			$id = $headArr[0];
-			$date = str_replace('"', null, $headArr[4])." ".str_replace('"', null, $headArr[5]);
-			//$hour = $headArr[5];
-			// txt
-			$txt = str_replace("'", null, $arrItem[1]);
-			$txt = str_replace("ERROR", null, $txt);
-			$inbox[] = array('id' => $id, 'sender' => $fromTlfn, 'text' => $txt, 'date' => $date);
-		}
-		return $inbox;
+<?php
+exec('mode COM7: baud=19200 data=8 stop=1 parity=n xon=on');
+        if ($ser=fopen("COM7:","r+"))
+        {
+         $ret="";
+ 
+         fputs( $ser, "AT+CMGF=1" . "\r");    
+         usleep(500000);
+         fputs( $ser, "AT+CNMI" . "\r"); //tranfert sms de sim->modem directement    
+         usleep(500000);
+ 
+         fputs( $ser, 'AT+CMGL="REC UNREAD"'. "\r"); //1   
+         usleep(500000);
+         // fputs( $ser, 'AT+CMGD=1,4'. "\r"); //deletes all messages from storage
+         // usleep(500000);     
+          
+         // fputs( $ser, 'AT+CMGL="ALL"' . "\r");     //parametrage , stockage et nombre max, on stocke ds le telephone
+         // usleep(500000);
+ 
+         while(!feof($ser)){
+          $ret .= fgets( $ser);
+                    // $ret = "";
+                         
+                            $ret .= fgets( $ser); // lecture du sms a utilise
+                            $ret .= fgets( $ser);
+            echo $ret;      
+         }
+        fclose($ser);
+        return $ret;
+        }
+    else
+//no_sms:      fclose($ser);
+            return 0;
+?>
+
+<<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+
+</body>
+</html>

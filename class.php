@@ -6,9 +6,9 @@
 
 
 //Send SMS via serial SMS modem
-class gsm_send_sms {
+class gsm_send_sms{
 
-    public $port = 'COM15';
+    public $port = 'COM7';
     public $baud = 9600;
 
     public $debug = false;
@@ -47,6 +47,7 @@ class gsm_send_sms {
 
         //Wait for ok
         $status = $this->wait_reply("OK\r\n", 5);
+        echo "<script>alert('true in init()');</script>";
 
         if (!$status) {
             throw new Exception('Did not receive responce from modem');
@@ -59,6 +60,7 @@ class gsm_send_sms {
         fputs($this->fp, "AT+CMGF=1\r");
 
         $status = $this->wait_reply("OK\r\n", 5);
+        echo "<script>alert('in init()');</script>";
 
         if (!$status) {
             throw new Exception('Unable to set text mode');
@@ -69,7 +71,7 @@ class gsm_send_sms {
     }
 
     //Wait for reply from modem
-    private function wait_reply($expected_result, $timeout) {
+    private function wait_reply($expected_result, $timeout,$test="") {
 
         $this->debugmsg("Waiting {$timeout} seconds for expected result");
 
@@ -94,9 +96,11 @@ class gsm_send_sms {
             //Check if received expected responce
             if (preg_match('/'.preg_quote($expected_result, '/').'$/', $this->buffer)) {
                 $this->debugmsg('Found match');
+                echo "<script>alert('true');</script>";
                 return true;
                 //break;
             } else if (preg_match('/\+CMS ERROR\:\ \d{1,3}\r\n$/', $this->buffer)) {
+                echo "<script>alert('false');</script>";
                 return false;
             }
 
@@ -171,15 +175,18 @@ class gsm_send_sms {
     }
 
     public function read(){
-
+        
         $this->debugmsg("Reading inbox");
-        //Start sending of message
-        fputs($this->fp, "AT+CMGL=\"ALL\"\n\r");
+        //Start sending of message AT+CSCS=\"PCCP437\"
+        //fputs($this->fp, "AT+CSCS=\"PCCP437\" \n\r");
+        fputs($this->fp, "AT+CMGL=\"ALL\" \n\r");
+        echo "<script>alert(".$this->fp.");</script>";
         //Wait for confirmation
         $status = $this->wait_reply("OK\r\n", 5);
         //print_r($this->buffer);die;
         $arr = explode("+CMGL:", $this->buffer);
-        $inbox = null;  
+        //print_r($arr);
+        $inbox=null;  
         for ($i = 1; $i < count($arr); $i++) {
             $arrItem = explode("\n", $arr[$i], 2);
             // Header
@@ -191,8 +198,11 @@ class gsm_send_sms {
             // txt
             $txt = str_replace("'", null, $arrItem[1]);
             $txt = str_replace("ERROR", null, $txt);
+            //$inbox[] = array('id' => $id, 'sender' => $fromTlfn, 'text' => $txt, 'date' => $date);
             $inbox[] = array('id' => $id, 'sender' => $fromTlfn, 'text' => $txt, 'date' => $date);
+            
         }
+        echo $inbox;
         return $inbox;
 
     }
