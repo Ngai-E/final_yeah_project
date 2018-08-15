@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-require_once('class.php');
+require_once('smsClass.php');
 
 //Example here my gsm modem in assigned in com3 in my device manager
 
@@ -24,7 +24,7 @@ if(1){
 	// }
 
 	$read = $gsm_send_sms->read();
-	//echo $read;
+	echo $read[0]['text'];
 
 	$gsm_send_sms->close();
 }

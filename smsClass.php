@@ -47,7 +47,6 @@ class gsm_send_sms{
 
         //Wait for ok
         $status = $this->wait_reply("OK\r\n", 5);
-        echo "<script>alert('true in init()');</script>";
 
         if (!$status) {
             throw new Exception('Did not receive responce from modem');
@@ -60,7 +59,6 @@ class gsm_send_sms{
         fputs($this->fp, "AT+CMGF=1\r");
 
         $status = $this->wait_reply("OK\r\n", 5);
-        echo "<script>alert('in init()');</script>";
 
         if (!$status) {
             throw new Exception('Unable to set text mode');
@@ -96,11 +94,9 @@ class gsm_send_sms{
             //Check if received expected responce
             if (preg_match('/'.preg_quote($expected_result, '/').'$/', $this->buffer)) {
                 $this->debugmsg('Found match');
-                echo "<script>alert('true');</script>";
                 return true;
                 //break;
             } else if (preg_match('/\+CMS ERROR\:\ \d{1,3}\r\n$/', $this->buffer)) {
-                echo "<script>alert('false');</script>";
                 return false;
             }
 
@@ -177,33 +173,40 @@ class gsm_send_sms{
     public function read(){
         
         $this->debugmsg("Reading inbox");
-        //Start sending of message AT+CSCS=\"PCCP437\"
-        //fputs($this->fp, "AT+CSCS=\"PCCP437\" \n\r");
-        fputs($this->fp, "AT+CMGL=\"ALL\" \n\r");
-        echo "<script>alert(".$this->fp.");</script>";
+
+        fputs($this->fp, 'AT+CMGL="REC UNREAD"'. "\r"); //read any unread messages in sim
         //Wait for confirmation
-        $status = $this->wait_reply("OK\r\n", 5);
-        //print_r($this->buffer);die;
-        $arr = explode("+CMGL:", $this->buffer);
-        //print_r($arr);
-        $inbox=null;  
-        for ($i = 1; $i < count($arr); $i++) {
-            $arrItem = explode("\n", $arr[$i], 2);
+        $status = $this->wait_reply("OK\r\n", 5); 
+
+        $arr = explode("+CMGL:", $this->buffer);   //converting string to array separated separated by +CMGL in the form
+                                                    //arr = ['index,status,number,date,message']
+
+        fputs($this->fp, 'AT+CMGD=1,4' . "\r"); //delete all messages after reading
+         //Wait for confirmation
+        $status = $this->wait_reply("OK\r\n", 5); 
+        
+        $inbox=null;   //variable used to store message
+        for ($i = 1; $i < count($arr); $i++) {   //because the first is OK
+            $arrItem = explode("\n", $arr[$i], 3);  // converts arr[i] string to array in the form 
+                                                    //arritem = ['index,status,number,date','message', 'OK']
             // Header
-            $headArr = explode(",", $arrItem[0]);
-            $fromTlfn = str_replace('"', null, $headArr[2]);
-            $id = $headArr[0];
-            $date = str_replace('"', null, $headArr[4])." ".str_replace('"', null, $headArr[5]);
-            //$hour = $headArr[5];
+            $headArr = explode(",", $arrItem[0]);   //converts string arrItem[0] into and array separated by ','
+            $fromTlfn = str_replace('"', null, $headArr[2]);   //returns the number which sent the message eg +237650931636
+
+            $id = $headArr[0]; //the index of the received message
+
+            $date = str_replace('"', null, $headArr[4])." ".str_replace('"', null, $headArr[5]); //returns the date eg 
+                                                                                                // 18/08/15 23:22:17+04
             // txt
-            $txt = str_replace("'", null, $arrItem[1]);
-            $txt = str_replace("ERROR", null, $txt);
-            //$inbox[] = array('id' => $id, 'sender' => $fromTlfn, 'text' => $txt, 'date' => $date);
-            $inbox[] = array('id' => $id, 'sender' => $fromTlfn, 'text' => $txt, 'date' => $date);
-            
+            $txt = str_replace("'", null, $arrItem[1]);  //returns the message eg hello without quotes
+
+           // $txt = str_replace("ERROR", null, $txt);   //do not show errors
+
+            $inbox[] = array('id' => $id, 'sender' => $fromTlfn, 'text' => $txt, 'date' => $date); //put sms in array
+
         }
-        echo $inbox;
-        return $inbox;
+        
+        return $inbox;  // returned a multidimensional array
 
     }
 
