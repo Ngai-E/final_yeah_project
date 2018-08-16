@@ -6,7 +6,7 @@
 
 
 //Send SMS via serial SMS modem
-class gsm_send_sms{
+class gsm_sms{
 
     public $port = 'COM7';
     public $baud = 9600;
@@ -24,7 +24,7 @@ class gsm_send_sms{
         exec("MODE {$this->port}: BAUD={$this->baud} PARITY=N DATA=8 STOP=1", $output, $retval);
 
         if ($retval != 0) {
-            throw new Exception('Unable to setup COM port, check it is correct');
+            throw new Exception('Unable to setup COM port, check if it is correct');
         }
 
         $this->debugmsg(implode("\n", $output));
@@ -177,18 +177,17 @@ class gsm_send_sms{
         fputs($this->fp, 'AT+CMGL="REC UNREAD"'. "\r"); //read any unread messages in sim
         //Wait for confirmation
         $status = $this->wait_reply("OK\r\n", 5); 
-
+       
         $arr = explode("+CMGL:", $this->buffer);   //converting string to array separated separated by +CMGL in the form
-                                                    //arr = ['index,status,number,date,message']
-
+        
         fputs($this->fp, 'AT+CMGD=1,4' . "\r"); //delete all messages after reading
-         //Wait for confirmation
-        $status = $this->wait_reply("OK\r\n", 5); 
+          //Wait for confirmation
+        $status = $this->wait_reply("OK\r\n", 5);                                    //arr = ['index,status,number,date,message']
         
         $inbox=null;   //variable used to store message
         for ($i = 1; $i < count($arr); $i++) {   //because the first is OK
             $arrItem = explode("\n", $arr[$i], 3);  // converts arr[i] string to array in the form 
-                                                    //arritem = ['index,status,number,date','message', 'OK']
+                                              //arritem = ['index,status,number,date','message', 'OK']
             // Header
             $headArr = explode(",", $arrItem[0]);   //converts string arrItem[0] into and array separated by ','
             $fromTlfn = str_replace('"', null, $headArr[2]);   //returns the number which sent the message eg +237650931636
@@ -200,13 +199,11 @@ class gsm_send_sms{
             // txt
             $txt = str_replace("'", null, $arrItem[1]);  //returns the message eg hello without quotes
 
-           // $txt = str_replace("ERROR", null, $txt);   //do not show errors
-
             $inbox[] = array('id' => $id, 'sender' => $fromTlfn, 'text' => $txt, 'date' => $date); //put sms in array
-
+          
         }
         
-        return $inbox;  // returned a multidimensional array
+        return $inbox;  // returned a multidimensional array if there was a new message
 
     }
 
