@@ -37,7 +37,7 @@
       ********************************************************************/
       $normal=$error=$warning=$alert=$emergency=$critical = "";//initialising the threshold values
 
-      $sql = "SELECT * FROM parameter_threshold WHERE parameter_name = 'temperature' ";//statement to be executed
+      $sql = "SELECT * FROM parameter_threshold WHERE parameter_name = 'fuel_level' ";//statement to be executed
 
       $result = mysqli_query($conn, $sql); //execute query
       
@@ -69,7 +69,7 @@
         $warning_amount = $error_amount =$critical_amount=$emergency_amount=$alert_amount= 0;
 
         //read the logs from last week
-        $sql = "SELECT * FROM `logs` WHERE `parameter_name` = 'temperature' && `time` > '$s1' && `value` >= 40 ORDER BY `time` ASC" ; //the query
+        $sql = "SELECT * FROM `logs` WHERE `parameter_name` = 'battery_charge' && `time` > '$s1' && `value` <= 50 ORDER BY `time` ASC" ; //the query
         $number = 1;
         $result = mysqli_query($conn, $sql);//execute query
         $append = "";
@@ -80,31 +80,31 @@
                $append .=  ' <tr>
                                   <td>'.$number++. '</td>
                                   <td>'.$row["time"].'</td>';
-                if( $row["value"] >= 40 && $row['value'] < 60  ){
+                if( $row["value"] >= 30 && $row['value'] <= 50  ){
                   $append .= '<td>warning</td>
                                   <td><span class="badge" style="background-color: #7a9a51"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $warning_amount++;
                 }
-                elseif ($row["value"] >= 60 && $row['value'] < 80  ) {
+                elseif ($row["value"] > 20 && $row['value'] <=30  ) {
                   $append .= '<td>error</td>
                                   <td><span class="badge" style="background-color: #41cac0"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $error_amount++;
                 }
-                elseif ($row["value"] >= 80 && $row['value'] < 100  ) {
+                elseif ($row["value"] >10 && $row['value'] <= 20  ) {
                   $append .= '<td>critical</td>
                                   <td><span class="badge" style="background-color: #2A3542"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $critical_amount++;
                 }
-                elseif ($row["value"] >= 100 && $row['value'] < 200  ) {
+                elseif ($row["value"] >5 && $row['value'] <=10  ) {
                   $append .= '<td>alert</td>
                                   <td><span class="badge" style="background-color: #FCB322"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $alert_amount++;
                 }
-                elseif ($row["value"] >= 200  ) {
+                elseif ($row["value"] <5  ) {
                   $append .= '<td>emergency</td>
                                   <td><span class="badge" style="background-color: #ff6c60"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
@@ -123,7 +123,7 @@
       /**************************************
         plotting the graph with values from db
       ****************************************/
-         $sql = "SELECT * FROM `logs` WHERE `time` > '2018-10-03 15:00:00' && `parameter_name` = 'temperature' "; //query for ploting graph
+         $sql = "SELECT * FROM `logs` WHERE `time` > '2018-10-03 15:00:00' && `parameter_name` = 'battery_charge' "; //query for ploting graph
          $result = mysqli_query($conn, $sql); //execute query
          if (mysqli_num_rows($result) > 0) {
             echo "<script> var arraygraph = [];</script>";   //used to plot graph
@@ -174,11 +174,11 @@
       		  <div class="row mt">
                   <div class="col-md-12">
                       <div class="content-panel">
-                        <div class="col-lg-6">
+
+                          <div class="col-lg-6">
                           <div class="content-panel" style="padding-top: 0px">
-                            <h4><i class="fa fa-angle-right"></i> Table of threshold values</h4><hr><table class="table table-striped table-advance table-hover">
-                            
-                            
+                              <h4><i class="fa fa-angle-right"></i> Threshold values</h4><hr>
+                              <table class="table table-striped table-advance table-hover">  
                               <thead>
                               <tr>
                                   <th><i class="fa fa-bullhorn"></i> Notification Type</th>
@@ -193,7 +193,7 @@
                                   <td><a href="basic_table.html#">normal</a></td>
                                   <td class="hidden-phone" id="normal_thresh" ><?php echo $normal;?></td>
                                   <th><span class="badge" style="background-color: #27ef17"><b style="visibility: hidden;">5</b></span></th>
-                                  <td><span class="hidden-phone">temperature drop below is value is not accepted</span></td>
+                                  <td><span class="hidden-phone">levels aroud this is normal</span></td>
                                   <td>
                                                    
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
@@ -203,7 +203,7 @@
                                   <td><a href="basic_table.html#">warning</a></td>
                                   <td class="hidden-phone" id="warning_thresh" > <?php echo $warning;?></td>
                                   <th><span class="badge" style="background-color: #7a9a51"><b style="visibility: hidden;">5</b></span></th>
-                                  <td><span class="hidden-phone">temperature increase above this value should signal operator and turn on fan</span></td>
+                                  <td><span class="hidden-phone">levels below this should indicate a warning</span></td>
                                   <td>
                                                    
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
@@ -213,7 +213,7 @@
                                   <td><a href="basic_table.html#">error</a></td>
                                   <td class="hidden-phone" id="error_thresh" ><?php echo $error;?></td>
                                   <th><span class="badge" style="background-color: #41cac0"><b style="visibility: hidden;">5</b></span></th>
-                                  <td><span class="hidden-phone">temperature increase above this value should signal operator about possible damage</span></td>
+                                  <td><span class="hidden-phone">levels below this should notify management</span></td>
                                   <td>
                                                    
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
@@ -223,7 +223,7 @@
                                   <td><a href="basic_table.html#">critical</a></td>
                                   <td class="hidden-phone" id="critical_thresh" ><?php echo $critical;?></td>
                                   <th><span class="badge" style="background-color: #2A3542"><b style="visibility: hidden;">5</b></span></th>
-                                  <td><span class="hidden-phone">temperature increase above this value should signal operator about possible damage</span></td>
+                                  <td><span class="hidden-phone">levels below this can be critical</span></td>
                                   <td>
                                                    
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
@@ -233,7 +233,7 @@
                                   <td><a href="basic_table.html#">alert</a></td>
                                   <td class="hidden-phone" id="alert_thresh" ><?php echo $alert;?></td>
                                   <th><span class="badge" style="background-color: #FCB322"><b style="visibility: hidden;">5</b></span></th>
-                                  <td><span class="hidden-phone">temperature increase above this value should alert operator about possible damage</span></td>
+                                  <td><span class="hidden-phone">levels below this should raise appropriate alarms</span></td>
                                   <td>
                                                    
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
@@ -243,7 +243,7 @@
                                   <td><a href="basic_table.html#">emergency</a></td>
                                   <td class="hidden-phone" id="emerg_thresh"><?php echo $emergency;?></td>
                                   <th><span class="badge" style="background-color: #ff6c60"><b style="visibility: hidden;">5</b></span></th>
-                                  <td><span class="hidden-phone">temperature increase above this value should signal operator about possible damage</span></td>
+                                  <td><span class="hidden-phone">levels below this should indicate no charge left</span></td>
                                   <td>
                                                    
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
@@ -252,9 +252,11 @@
                               
                               </tbody>
                           </table>
-                          </div>
+                      </div>
                   </div>
-                  <div class="col-lg-6">
+
+                     
+                           <div class="col-lg-6">
                           <div class="content-panel" style="padding-top: 0px">
                               <h4><i class="fa fa-angle-right"></i> Current state</h4><hr>
                               <div class="panel-body text-center" style="width: 100%;height: 230px">
@@ -262,6 +264,8 @@
                           </div>
                       </div>
                   </div>
+                          </div>
+
                           
                       </div><!-- /content-panel -->
                   </div><!-- /col-md-12 -->
@@ -297,9 +301,9 @@
                         <br/>
                         <!-- show the information graphically -->
                           <div class="content-panel">
-                            <h4><i class="fa fa-angle-right"></i>&#32;Graphical representation of temperature fluctuation in the past week</h4>
+                            <h4><i class="fa fa-angle-right"></i>&#32;Graphical representation of fuel level in the past week</h4>
                               <div class="panel-body text-center">
-                                  <canvas id="temp_graph" height="300" width="400"></canvas>
+                                  <canvas id="charge_graph" height="300" width="400"></canvas>
                               </div>
                           </div>
                           
@@ -355,7 +359,7 @@
 
         };
     
-    new Chart(document.getElementById("temp_graph").getContext("2d")).Line(lineChartData);
+    new Chart(document.getElementById("charge_graph").getContext("2d")).Line(lineChartData);
 
 }();
 

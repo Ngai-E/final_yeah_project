@@ -23,9 +23,9 @@
                           <span>Power logs and control</span>
                       </a>
                       <ul class="sub">
-                          <li><a  href="#">Genset Management</a></li>
-                          <li><a  href="#">Voltage Managment</a></li>
-                          <li><a  href="#">Battery Status</a></li>
+                          <li><a  href="genset.php">Genset Management</a></li>
+                          <li><a  href="voltage.php">Voltage Managment</a></li>
+                          <li><a  href="battery.php">Battery Status</a></li>
                       </ul>
                   </li>
 
@@ -45,9 +45,9 @@
                           <span>Security</span>
                       </a>
                       <ul class="sub">
-                          <li><a  href="#">Motion logs</a></li>
-                          <li><a  href="#">Authentication logs</a></li>
-                          <li><a  href="#">Fuel Level logs</a></li>
+                          <li><a  href="motion.php">Motion logs</a></li>
+                          <li><a  href="auth.php">Authentication logs</a></li>
+                          <li><a  href="fuel.php">Fuel Level logs</a></li>
                       </ul>
                   </li>
                   <li class="sub-menu">

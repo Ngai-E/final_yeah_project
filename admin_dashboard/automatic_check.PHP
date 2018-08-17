@@ -6,6 +6,7 @@ require('smsClass.php'); //class file for sms commands
 
 $phoneNumber = "+237650931636" //set the phone number of the site expecting
 $messageToSent = "";
+
 while(1) {
 	$gsm_sms = new gsm_sms();     //creating object to send sms
 	$gsm_sms->debug = false;

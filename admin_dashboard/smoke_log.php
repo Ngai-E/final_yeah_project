@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="Dashboard">
-    <meta name="keyword" content="Dashboard, Bootstrap, Admin, Template, Theme, Responsive, Fluid, Retina">
+    <meta name="keyword" content="Dashboard, Bootstrap, Admin, smokelate, Theme, Responsive, Fluid, Retina">
 
-    <title>DASHGUM - Bootstrap Admin Template</title>
+    <title>DASHGUM - Bootstrap Admin smokelate</title>
 
     <!-- Bootstrap core CSS -->
     <link href="assets/css/bootstrap.css" rel="stylesheet">
@@ -15,7 +15,7 @@
     <link href="assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="assets/js/gritter/css/jquery.gritter.css" />
         
-    <!-- Custom styles for this template -->
+    <!-- Custom styles for this smokelate -->
     <link href="assets/css/style.css" rel="stylesheet">
     <link href="assets/css/style-responsive.css" rel="stylesheet">
 
@@ -27,6 +27,126 @@
   </head>
 
   <body>
+
+  <?php 
+      require ('config.php'); //contains the database connection
+
+      /********************************************************************
+      this section selects threshold values from database and outputs
+      ********************************************************************/
+      $normal=$error=$warning=$alert=$emergency=$critical = "";//initialising the threshold values
+
+      $sql = "SELECT * FROM `parameter_threshold` WHERE `parameter_name` = 'smoke' ";//statement to be executed
+
+      $result = mysqli_query($conn, $sql); //execute query
+      
+      if (mysqli_num_rows($result) == 1) {
+          //select the threshold values from the returned string
+         while($row = mysqli_fetch_assoc($result)) {
+            $normal = $row['normal_value'];
+            $warning = $row['warning_value'];
+            $error = $row['error_value'];
+            $critical = $row['critical_value'];
+            $alert = $row['alert_value'];
+            $emergency = $row['emergency'];
+           
+      }
+
+      } else {
+          echo "";
+      }
+      /**********************************************************
+      outputing of threshold values ends here
+      **********************************************************/
+
+      /*******************************************************
+        outputing fault values in the past week begins here
+      *******************************************************/
+        $s = date("l",strtotime("today"));   //takes the date of today and get the day in a string.
+        $d=strtotime("last $s");  //converts the human readable string to date format e.g if today if friday, it will convert
+        $s1 = date("Y-m-d H:i:s", $d); //'last friday' to date in the format specified 'Y-m-d H:i:s'
+        $warning_amount = $error_amount =$critical_amount=$emergency_amount=$alert_amount= 0;
+
+        //read the logs from last week
+        $sql = "SELECT * FROM `logs` WHERE `parameter_name` = 'smoke' && `time` > '$s1' && `value` >= 40 ORDER BY `time` ASC" ; //the query
+        $number = 1;
+        $result = mysqli_query($conn, $sql);//execute query
+        $append = "";
+        if (mysqli_num_rows($result) > 0) {
+            // output data of each row
+            while($row = mysqli_fetch_assoc($result)) {
+
+               $append .=  ' <tr>
+                                  <td>'.$number++. '</td>
+                                  <td>'.$row["time"].'</td>';
+                if( $row["value"] >= 40 && $row['value'] < 60  ){
+                  $append .= '<td>warning</td>
+                                  <td><span class="badge" style="background-color: #7a9a51"><b style="visibility: hidden;">5</b></span></td>
+                              </tr> ';
+                  $warning_amount++;
+                }
+                elseif ($row["value"] >= 60 && $row['value'] < 80  ) {
+                  $append .= '<td>error</td>
+                                  <td><span class="badge" style="background-color: #41cac0"><b style="visibility: hidden;">5</b></span></td>
+                              </tr> ';
+                  $error_amount++;
+                }
+                elseif ($row["value"] >= 80 && $row['value'] < 100  ) {
+                  $append .= '<td>critical</td>
+                                  <td><span class="badge" style="background-color: #2A3542"><b style="visibility: hidden;">5</b></span></td>
+                              </tr> ';
+                  $critical_amount++;
+                }
+                elseif ($row["value"] >= 100 && $row['value'] < 200  ) {
+                  $append .= '<td>alert</td>
+                                  <td><span class="badge" style="background-color: #FCB322"><b style="visibility: hidden;">5</b></span></td>
+                              </tr> ';
+                  $alert_amount++;
+                }
+                elseif ($row["value"] >= 200  ) {
+                  $append .= '<td>emergency</td>
+                                  <td><span class="badge" style="background-color: #ff6c60"><b style="visibility: hidden;">5</b></span></td>
+                              </tr> ';
+                  $emergency_amount++;
+                }
+            }
+        } else {
+            echo "";
+        }
+
+
+      /****************************************************
+        outputing fault values in the past week ends here
+      ****************************************************/
+
+      /**************************************
+        plotting the graph with values from db
+      ****************************************/
+         $sql = "SELECT * FROM `logs` WHERE `time` > '2018-10-03 15:00:00' && `parameter_name` = 'smoke' "; //query for ploting graph
+         $result = mysqli_query($conn, $sql); //execute query
+         if (mysqli_num_rows($result) > 0) {
+            echo "<script> var arraygraph = [];</script>";   //used to plot graph
+            echo "<script> var labelgraph = [];</script>";   //used to plot graph
+            // store the values of smoke in an array
+            while($row = mysqli_fetch_assoc($result)) {
+              echo "<script> arraygraph.push(".$row['value'].");</script>"; 
+              echo "<script> labelgraph.push(' ');</script>"; 
+
+            }
+          }
+
+          else{
+            echo "";
+          }
+
+
+      /*******************************
+        end graph plot
+      **********************************/
+
+      mysqli_close($conn);
+
+    ?>
 
   <section id="container" >
       <!-- **********************************************************************************************************************************************************
@@ -53,7 +173,10 @@
             <div class="row mt">
                   <div class="col-md-12">
                       <div class="content-panel">
-                          <h4><i class="fa fa-angle-right"></i> Table of threshold values</h4><hr><table class="table table-striped table-advance table-hover">
+
+                        <div class="col-lg-6">
+                          <div class="content-panel" style="padding-top: 0px">
+                            <h4><i class="fa fa-angle-right"></i> Table of threshold values</h4><hr><table class="table table-striped table-advance table-hover">
                             
                             
                               <thead>
@@ -72,10 +195,9 @@
                                   <th><span class="badge" style="background-color: #27ef17"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke level from this value below is normal and</span></td>
                                   <td>
-                                      <button class="btn btn-success btn-xs"><i class="fa fa-check"></i></button>
+                                                   
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
-                                      <button class="btn btn-danger btn-xs"><i class="fa fa-trash-o "></i></button>
-                                  </td>
+                                      </td>               
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">warning</a></td>
@@ -83,10 +205,9 @@
                                   <th><span class="badge" style="background-color: #7a9a51"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke increase above this value should signal operator and turn on fan</span></td>
                                   <td>
-                                      <button class="btn btn-success btn-xs"><i class="fa fa-check"></i></button>
+                                                   
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
-                                      <button class="btn btn-danger btn-xs"><i class="fa fa-trash-o "></i></button>
-                                  </td>
+                                      </td>               
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">error</a></td>
@@ -94,10 +215,9 @@
                                   <th><span class="badge" style="background-color: #41cac0"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke increase above this value should signal operator about possible damage</span></td>
                                   <td>
-                                      <button class="btn btn-success btn-xs"><i class="fa fa-check"></i></button>
+                                                   
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
-                                      <button class="btn btn-danger btn-xs"><i class="fa fa-trash-o "></i></button>
-                                  </td>
+                                      </td>               
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">critical</a></td>
@@ -105,10 +225,9 @@
                                   <th><span class="badge" style="background-color: #2A3542"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke increase above this value should signal operator about possible damage</span></td>
                                   <td>
-                                      <button class="btn btn-success btn-xs"><i class="fa fa-check"></i></button>
+                                                   
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
-                                      <button class="btn btn-danger btn-xs"><i class="fa fa-trash-o "></i></button>
-                                  </td>
+                                      </td>               
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">alert</a></td>
@@ -116,10 +235,9 @@
                                   <th><span class="badge" style="background-color: #FCB322"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke increase above this value should alert operator about possible damage</span></td>
                                   <td>
-                                      <button class="btn btn-success btn-xs"><i class="fa fa-check"></i></button>
+                                                   
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
-                                      <button class="btn btn-danger btn-xs"><i class="fa fa-trash-o "></i></button>
-                                  </td>
+                                      </td>               
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">emergency</a></td>
@@ -127,28 +245,38 @@
                                   <th><span class="badge" style="background-color: #ff6c60"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke increase above this value should signal operator about possible damage</span></td>
                                   <td>
-                                      <button class="btn btn-success btn-xs"><i class="fa fa-check"></i></button>
+                                                   
                                       <button class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></button>
-                                      <button class="btn btn-danger btn-xs"><i class="fa fa-trash-o "></i></button>
-                                  </td>
+                                      </td>               
                               </tr>
                               
                               </tbody>
                           </table>
+                          </div>
+                  </div>
+                  <div class="col-lg-6">
+                          <div class="content-panel" style="padding-top: 0px">
+                              <h4><i class="fa fa-angle-right"></i> Current state</h4><hr>
+                              <div class="panel-body text-center" style="width: 100%;height: 230px">
+                                  will show a picture here
+                          </div>
+                      </div>
+                  </div>
+                          
                       </div><!-- /content-panel -->
                   </div><!-- /col-md-12 -->
               </div>
               <br/>
 
-              <!-- this is the part to show  recent faults over the past week -->
+               <!-- this is the part to show  recent faults over the past week -->
               <div class="content-panel">
                             <h4><i class="fa fa-angle-right"></i>&#32;recent faults in the past week</h4>
                             <div class="showback">
-                              <span class="badge bg-success" style="background-color: #7a9a51">15</span>
-                              <span class="badge bg-info">20</span>
-                              <span class="badge bg-inverse">25</span>
-                              <span class="badge bg-warning">30</span>
-                              <span class="badge bg-important">35</span>
+                              <span class="badge bg-success" style="background-color: #7a9a51"><?php echo $warning_amount; ?></span>
+                              <span class="badge bg-info"><?php echo $error_amount; ?></span>
+                              <span class="badge bg-inverse"><?php echo $critical_amount; ?></span>
+                              <span class="badge bg-warning"><?php echo $alert_amount; ?></span>
+                              <span class="badge bg-important"><?php echo $emergency_amount; ?></span>
                             </div>
                             <hr>
                           <table class="table">
@@ -160,37 +288,8 @@
                                   <th></th>
                               </tr>
                               </thead>
-                              <tbody>
-                              <tr>
-                                  <td>1</td>
-                                  <td>12/03/18;12:30pm</td>
-                                  <td>warning</td>
-                                  <td><span class="badge" style="background-color: #7a9a51"><b style="visibility: hidden;">5</b></span></td>
-                              </tr>
-                              <tr>
-                                  <td>2</td>
-                                  <td>12/03/18;12:30pm</td>
-                                  <td>error</td>
-                                  <td><span class="badge" style="background-color: #41cac0"><b style="visibility: hidden;">5</b></span></td>
-                              </tr>
-                              <tr>
-                                  <td>3</td>
-                                  <td>12/03/18;12:30pm</td>
-                                  <td>critical</td>
-                                  <td><span class="badge" style="background-color: #2A3542"><b style="visibility: hidden;">5</b></span></td>
-                              </tr>
-                              <tr>
-                                  <td>4</td>
-                                  <td>12/03/18;12:30pm</td>
-                                  <td>alert</td>
-                                  <td><span class="badge" style="background-color: #FCB322"><b style="visibility: hidden;">5</b></span></td>
-                              </tr>
-                              <tr>
-                                  <td>5</td>
-                                  <td>12/03/18;12:30pm</td>
-                                  <td>emergency</td>
-                                  <td><span class="badge" style="background-color: #ff6c60"><b style="visibility: hidden;">5</b></span></td>
-                              </tr>
+                              <tbody id="fault_table">
+                                <?php echo $append; ?>
                               </tbody>
                           </table>
                         </div> <!-- end fault over the past week -->
@@ -200,7 +299,7 @@
                           <div class="content-panel">
                             <h4><i class="fa fa-angle-right"></i>&#32;Graphical representation of smoke fluctuation in the past week</h4>
                               <div class="panel-body text-center">
-                                  <canvas id="temp_graph" height="300" width="400"></canvas>
+                                  <canvas id="smoke_graph" height="300" width="400"></canvas>
                               </div>
                           </div>
                           
@@ -239,24 +338,23 @@
           $('select.styled').customSelect();
       });
 
+      //function to plot the graph
       var Script = function () {
-        var set = [20,48,40,19,96,27,100,50,200];
-        var label = ["","","","","","","","",""];
         var lineChartData = {
-            labels : label,
+            labels : labelgraph,    //array obtained after reading the database
             datasets : [
                 {
                     fillColor : "rgba(151,187,205,0.5)",
                     strokeColor : "rgba(151,187,205,1)",
                     pointColor : "rgba(151,187,205,1)",
                     pointStrokeColor : "#fff",
-                    data : set
+                    data : arraygraph  //array obtained after reading the database
                 }
             ]
 
         };
     
-    new Chart(document.getElementById("temp_graph").getContext("2d")).Line(lineChartData);
+    new Chart(document.getElementById("smoke_graph").getContext("2d")).Line(lineChartData);
 
 }();
 
