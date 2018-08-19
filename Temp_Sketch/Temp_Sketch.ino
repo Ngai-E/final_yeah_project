@@ -176,15 +176,15 @@ void getTempAndGasAvg(){
      gas += getGasLevel();
      delay(500);
   }
-  temperature = temp/10.0;
+  temperature = temp/10;
   gasValue = gas/10;
  }
 
 float getTemperature(){
   analogReadTemp = analogRead(tempSensor);    //Tell the Arduino to read the voltage on pin A0
-  float temp = (5.0 * analogReadTemp)/1023.0; // Convert the read value into a voltage
-  temp /= 0.01;
-  return temp;
+  float tempe = (5.0 * analogReadTemp)/1023.0; // Convert the read value into a voltage
+  tempe /= 0.01;
+  return tempe;
 }
 
 int getGasLevel(){
