@@ -9,7 +9,7 @@ if(1){
 	// $mobile_number=$_POST['mobile_number'];
 	// $messages=$_POST['messages'];
 
-	$gsm_send_sms = new gsm_send_sms();
+	$gsm_send_sms = new gsm_sms();
 	$gsm_send_sms->debug = false;
 	$gsm_send_sms->port = 'COM7';
 	$gsm_send_sms->baud = 9600;

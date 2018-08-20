@@ -7,15 +7,18 @@
 
 SoftwareSerial Serial1(7,8);
 
-const byte numChars = 50;
+const byte numChars = 180;
 char receivedChars[numChars];
 char tempChars[numChars];        // temporary array for use when parsing
 
 // variables to hold the parsed data
-char phoneNumber[numChars] = {0};
-char empty[numChars] = {0};
-char date[numChars] = {0};
+char phoneNumber[22] = {0};
+char empty[3] = {0};
+char date[25] = {0};
 char controlMessage[numChars] = {0};
+int threshold[31] = {6};
+//char authorised[] = {'"','+','2','3','7','6','5','0','9','3','1','6','3','6','"'};
+//char authorised2[] = {'"','+','2','3','7','6','5','0','9','3','1','6','3','6', '"'};
 
 boolean newData = false;
 
@@ -54,7 +57,9 @@ void loop() {
             //   because strtok() used in parseData() replaces the commas with \0
         parseData();
         showParsedData();
+        dataProcessing();
         newData = false;
+        delay(100); //give the microcontroller time to process next line
     }
 }
 
@@ -102,14 +107,14 @@ void parseData() {      // split the data into its parts
     strcpy(phoneNumber, strtokIndx); // copy it to messageFromPC
  
     strtokIndx = strtok(NULL, ","); // this continues where the previous call left off
-    strcpy(empty, strtokIndx);     // convert this part to an integer
+    strcpy(empty, strtokIndx);     //
 
     strtokIndx = strtok(NULL, ",");
-    strcpy(date, strtokIndx);     // convert this part to a float
+    strcpy(date, strtokIndx);     // gets the date 
 
-    strtokIndx = strtok(NULL, "\r");
+    strtokIndx = strtok(NULL, "\n");
     strcat(date, ",");
-    strcat(date, strtokIndx);
+     strcat(date, strtokIndx);
 
     strtokIndx = strtok(NULL, "\n");
     strcpy(controlMessage, strtokIndx);  
@@ -126,3 +131,81 @@ void showParsedData() {
      Serial.print("content ");
     Serial.println(controlMessage);
 }
+int validateNumber(){    //this function will check if the sender is authorised to communicate with the system
+  if(strcmp(phoneNumber, "\"+237650931636\"")==0||strcmp(phoneNumber,"\"+237650931636\"")==0)
+    return 1;
+   else return 0;
+ // return 1:strcmp(phoneNumber, authorised)==0||strcmp(phoneNumber,authorised2)==0?0;    //return 1 if valid and 0 otherwise
+  }
+  
+ void parseMessage(){    //this function splits the messages to remove various info and will only be called if message is a request to store thresholds
+    int i;
+    char * strtokIndx; // this is used by strtok() as an index
+
+    strtokIndx = strtok(controlMessage,",");      // get the first part 0 for update and  1 for init
+    Serial.println(strtokIndx);
+    threshold[0] = atoi(strtokIndx); // copy it to array of threshold
+    for(i = 1 ; i < 31 ; i++){
+      strtokIndx = strtok(NULL, ","); // this continues where the previous call left off
+      threshold[i] = atoi(strtokIndx);     // convert this part to an integer
+      }
+  }//close parse Message
+
+int writeToEEProm(){  //this function writes to eeprom incase message is a request to store threshold
+    if(threshold[0] == 1){return 1;}   //initiallise the eeprom starting from index 1 of the array and return 1 when done
+    if(threshold[0] == 0){return 2;} //update the eeprom starting from index 1 of the array and return two when done
+    else{
+      return 0;  //could not understand request
+     }
+  }
+
+ int checkRequest(){  //request to the BTS can be of two types 1-> setting thresholds 2-> getting live data
+    if(strcmp(controlMessage, "GET") ==0){
+      return 1;   //it is a command to get data
+      }
+     else
+      return 0;     //it is a command to set threshold
+  }
+
+void dataProcessing(){
+  Serial.println("Processing data");
+  if(validateNumber()){   //check if the number is valid before proceeding
+    Serial.println("Number is valid");
+      if(checkRequest()){  //check the types of request issued
+        Serial.println("Request is get data");
+        //send and sms contain all data in the appropriate format
+        
+        }//close request type get data
+        
+      else{
+        Serial.println("request is threshold");
+        parseMessage();  //sttip the threshold and store in array
+        delay(100);
+
+        int state = writeToEEProm();
+        int i;
+
+        if(state== 1){
+          Serial.println("Threshold Initialisation Successful");
+          for(i = 0; i < 31 ; i++)
+          Serial.println(threshold[i]);
+          }
+         else if(state == 2){
+          Serial.println("Threshold update Successfull");
+          for(i = 0; i < 31 ; i++)
+          Serial.println(threshold[i]);
+         // Serial.println(threshold);
+          }
+         else{
+          Serial.println("Failed to access EEprom Unknown command");
+          }
+        
+        }//closing request is threshold
+        
+    }// close validate number
+    
+   else{
+    Serial.println("Number not authorise to control site, ACTION TERMINATED AND ALARM SENT!! YOU HAVE BEEN WARNED");
+    //send an sms to the person and to the head office
+    }
+  } //close data processing
