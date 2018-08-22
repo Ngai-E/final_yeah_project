@@ -28,7 +28,7 @@ if(isset($_POST['action'])){
         echo $status;
     }
 
-    echo read();
+  //  echo read();
 
     $gsm_send_sms->close();
 

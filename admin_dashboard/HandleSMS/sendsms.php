@@ -29,7 +29,7 @@ if(1){
 		$time = $read[0]['date'];
 		$time = str_replace('+04', null, $time);
 		$time = str_replace('/', '-', $time);
-		echo $time;
+		echo $read[0]['text'];
 		$read = null;
 	}
 	else{

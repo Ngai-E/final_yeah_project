@@ -174,7 +174,7 @@ class gsm_sms{
         
         $this->debugmsg("Reading inbox");
 
-        fputs($this->fp, 'AT+CMGL="REC UNREAD"'. "\r"); //read any unread messages in sim
+        fputs($this->fp, 'AT+CMGL="ALL"'. "\r"); //read any unread messages in sim
         //Wait for confirmation
         $status = $this->wait_reply("OK\r\n", 5); 
        
