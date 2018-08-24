@@ -172,11 +172,11 @@
       <section id="main-content">
           <section class="wrapper">
       		  <div class="row mt">
-                  <div class="col-md-12">
-                      <div class="content-panel">
+                  
+                   
 
-                        <div class="col-lg-6">
-                          <div class="content-panel" style="padding-top: 0px">
+                        <div class="col-lg-6 col-md-6 col-sm-12">
+                          <div class="content-panel" >
                           <h4><i class="fa fa-angle-right"></i> Table of threshold values</h4><hr>
                           <table class="table table-striped table-advance table-hover">
                             
@@ -254,25 +254,12 @@
                               
                               </tbody>
                           </table>
-                  </div></div>
-                  <div class="col-lg-6">
-                          <div class="content-panel" style="padding-top: 0px">
-                              <h4><i class="fa fa-angle-right"></i> Current state</h4><hr>
-                              <div class="panel-body text-center" style="width: 100%;height: 230px">
-                                  will show a picture here
-                          </div>
-                      </div>
                   </div>
-                         
-                      </div><!-- /content-panel -->
-                  </div><!-- /col-md-12 -->
-              </div>
-              <br/>
-
-              <!-- this is the part to show  recent faults over the past week -->
-              <div class="content-panel">
+                  <br>
+                   <!-- this is the part to show  recent faults over the past week -->
+                         <div class="content-panel showback">
                             <h4><i class="fa fa-angle-right"></i>&#32;recent faults in the past week</h4>
-                            <div class="showback">
+                            <div >
                               <span class="badge bg-success" style="background-color: #7a9a51"><?php echo $warning_amount; ?></span>
                               <span class="badge bg-info"><?php echo $error_amount; ?></span>
                               <span class="badge bg-inverse"><?php echo $critical_amount; ?></span>
@@ -294,9 +281,19 @@
                               </tbody>
                           </table>
                         </div> <!-- end fault over the past week -->
-
-                        <br/>
-                        <!-- show the information graphically -->
+                </div>
+                  
+                         
+                        <div class="col-lg-6 col-md-6 col-sm-12">
+                          <div class="content-panel showback" style="padding: 15px">
+                              <h4><i class="fa fa-angle-right"></i> Current state</h4><hr>
+                              <div class="panel-body text-center" style="width: 100%;height: 230px">
+                                  will show a picture here
+                              </div>
+                              <button type="button" class="btn btn-primary btn-lg btn-block">Get Current Value</button>
+                          </div>
+                          <br>
+                          <!-- show the information graphically -->
                           <div class="content-panel">
                             <h4><i class="fa fa-angle-right"></i>&#32;Graphical representation of motion fluctuation in the past week</h4>
                               <div class="panel-body text-center">
@@ -306,6 +303,12 @@
                           
                         <!-- end graphical demonstration -->
 
+
+                        </div>
+                   
+                </div>  <!-- close row -->
+
+                        
           </section><!--/wrapper -->
       </section><!-- /MAIN CONTENT -->
 

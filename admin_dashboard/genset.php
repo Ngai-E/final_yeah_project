@@ -22,7 +22,7 @@
 
     <style type="text/css">
       .loading-overlay {
-  position: absolute;
+  position:;
   top: 0;
   left: 0;
   width: 100%;
@@ -319,8 +319,8 @@
       <section id="main-content">
           <section class="wrapper">
                   <div class="row mt">
-                      <div class="col-lg-6">
-                          <div class="content-panel">
+                      <div class="col-lg-6 col-md-6 col-sm-12">
+                      <div class="content-panel">
                             <h4><i class="fa fa-angle-right"></i> Genset Current State</h4>
                             <div class=" text-center" >
                               <div  id="animate" ><br><br>
@@ -346,26 +346,10 @@
                                     </div>
                               </div>
                             </div>
-                              
-                          </div>
-                      </div>
-                      <div class="col-lg-6">
-                          <div class="content-panel">
-                              <h4><i class="fa fa-angle-right"></i> Put ON/OFF Genset or Test</h4>
-                              <div class="panel-body text-center" style="width: 200px;height: 230px">
-                                  <div class="col-sm-6 text-center" id="ON">
-                                  <input type="checkbox"  checked="" data-toggle="switch" />
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-                </div>
-              <br/>
-
-               <!-- this is the part to show  recent faults over the past week -->
-              <div class="content-panel">
+                              </div> <br>
+                     <div class="content-panel showback">
                             <h4><i class="fa fa-angle-right"></i>&#32;Operations in the past week</h4>
-                            <div class="showback">
+                            <div >
                               <b>ON</b><span class="badge bg-success" style="background-color: #7a9a51"><?php echo $warning_amount; ?></span>&#32;
                              <b>&#32;&#32;OFF</b><span class="badge bg-info"><?php echo $emergency_amount; ?></span>
                             </div>
@@ -385,8 +369,25 @@
                           </table>
                         </div> <!-- end fault over the past week -->
 
-                        <br/>
-                        <!-- show the information graphically -->
+                    </div> <!-- closing the col -->
+                      
+              
+               <!-- this is the part to show  recent faults over the past week -->
+              <div class="col-lg-6 col-md-6 col-sm-12">
+                
+               
+                          <div class="content-panel">
+                              <h4><i class="fa fa-angle-right"></i> Put ON/OFF Genset or Test</h4>
+                              <div class="panel-body text-center showback" >
+                                  <div class="col-sm-6 text-center" id="ON" style="width: 100%;">
+                                  <input type="checkbox"  checked="" data-toggle="switch" />
+                              </div>
+                          </div>
+                          <button type="button" class="btn btn-primary btn-lg btn-block">Get Current Value</button>
+                      </div>
+                  <br>
+                    
+                      <!-- show the information graphically -->
                           <div class="content-panel">
                             <h4><i class="fa fa-angle-right"></i>&#32;Graphical representation of Genset states in the past week</h4>
                               <div class="panel-body text-center">
@@ -396,6 +397,12 @@
                           
                         <!-- end graphical demonstration -->
 
+                    </div> <!-- closing the col dive -->
+              </div>
+
+
+             
+                        
           </section><!--/wrapper -->
       </section><!-- /MAIN CONTENT -->
 

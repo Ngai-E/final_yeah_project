@@ -1,6 +1,6 @@
 <?php
 exec('mode COM7: baud=9600 data=8 stop=1 parity=n xon=on');
-		if ($ser=fopen("COM7:","r+")) 
+		if ($ser=fopen("COM5:","r+")) 
 		{
 		 $ret="";
 

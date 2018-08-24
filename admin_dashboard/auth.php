@@ -126,12 +126,12 @@
       <section id="main-content">
           <section class="wrapper">
                
-              <br/>
-
-               <!-- this is the part to show  recent faults over the past week -->
-              <div class="content-panel">
+                    <div  class="row mt">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                    <!-- this is the part to show  recent faults over the past week -->
+                    <div class="content-panel showback">
                             <h4><i class="fa fa-angle-right"></i>&#32;Operations in the past week</h4>
-                            <div class="showback">
+                            <div >
                               <b>SUCCESS</b><span class="badge bg-success" style="background-color: #7a9a51"><?php echo $warning_amount; ?></span>&#32;
                              <b>&#32;&#32;FAILURE</b><span class="badge bg-info"><?php echo $emergency_amount; ?></span>
                             </div>
@@ -150,8 +150,8 @@
                               </tbody>
                           </table>
                         </div> <!-- end fault over the past week -->
-
-                        <br/>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12" >
                         <!-- show the information graphically -->
                           <div class="content-panel">
                             <h4><i class="fa fa-angle-right"></i>&#32;Graphical representation of Genset states in the past week</h4>
@@ -161,7 +161,8 @@
                           </div>
                           
                         <!-- end graphical demonstration -->
-
+                        </div>
+                      </div>
           </section><!--/wrapper -->
       </section><!-- /MAIN CONTENT -->
 
