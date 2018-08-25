@@ -1,11 +1,11 @@
 <?php
-error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+//error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-require_once('smsClass.php');
+require_once('sms_class.php');
 
 //Example here my gsm modem in assigned in com3 in my device manager
 
-if(isset($_POST['action'])){
+if(1){
 
     $mobile_number=$_POST['mobile_number'];
 
@@ -15,20 +15,21 @@ if(isset($_POST['action'])){
 
     $gsm_send_sms->debug = false;
 
-    $gsm_send_sms->port = 'COM7';
+    $gsm_send_sms->port = 'COM5';
 
     $gsm_send_sms->baud = 9600;
 
     $gsm_send_sms->init();
 
-    $status = $gsm_send_sms->send($mobile_number,$messages);
-    if ($status) {
-        echo $status;
-    } else {
-        echo $status;
-    }
+    // $status = $gsm_send_sms->send($mobile_number,$messages);
+    // if ($status) {
+    //     echo $status;
+    // } else {
+    //     echo $status;
+    // }
 
-  //  echo read();
+    $read = $gsm_send_sms->read();
+    echo $read;
 
     $gsm_send_sms->close();
 

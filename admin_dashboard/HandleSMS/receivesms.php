@@ -1,5 +1,6 @@
 <?php
-exec('mode COM7: baud=9600 data=8 stop=1 parity=n xon=on');
+while(1){
+	exec('mode COM7: baud=9600 data=8 stop=1 parity=n xon=on');
 		if ($ser=fopen("COM5:","r+")) 
 		{
 		 $ret="";
@@ -14,8 +15,8 @@ exec('mode COM7: baud=9600 data=8 stop=1 parity=n xon=on');
 		 fputs( $ser, 'AT+CMGL="ALL"'. "\r"); //1    
 		 usleep(500000);
 		 
-		  // fputs( $ser, 'AT+CMGD=1,4' . "\r");     //delay after deleting all messages
-		  // usleep(500000);
+		  fputs( $ser, 'AT+CMGD=1,4' . "\r");     //delay after deleting all messages
+		  usleep(500000);
 
 		 while(!feof($ser)){
 		  $ret .= fgets( $ser);
@@ -26,13 +27,16 @@ exec('mode COM7: baud=9600 data=8 stop=1 parity=n xon=on');
 			echo $ret;	 	 
 		 }
 		fclose($ser); 
-		return $ret;
+		//return $ret;
 		}
 	else
 //no_sms:	   fclose($ser);
-			return 0;
+			//return 0;
 
 echo date('y-m-d h:i:s', strtotime('18/08/16 11:57:03'));
+echo "\n"."done";
+usleep(500000);
+}
 ?>
 
 <!DOCTYPE html>

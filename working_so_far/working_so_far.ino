@@ -9,8 +9,6 @@ SoftwareSerial Serial1(7, 8);
 
 char  tempChars[180];        // temporary array for use when parsing
 char phoneNumber[22] = {0};
-char empty[3] = {0};
-char date[25] = {0};
 int threshold[31] = {6};
 
 const byte ROWS = 4;
@@ -32,9 +30,11 @@ short int voltage = 1;
 short int generator = 0; 
 boolean motion = false;
 float temperature; // variable that receives the converted voltage
-float tempThresholdMax = 40.0;
-float tempThresholdMin = 20.0;
-int smokeThresholdMax = 400;
+//float tempThresholdMax = 40.0;
+//float tempThresholdMin = 20.0;
+//int smokeThresholdMax = 400;
+
+short alert[7] = {0};
 
 LiquidCrystal_I2C lcd(0x3F, 16, 2); //   
 
@@ -49,6 +49,12 @@ void setup() {
   pinMode(fan, OUTPUT);
   pinMode(bulb, OUTPUT);
   digitalWrite(pirSensor,LOW);   //innitialising the pirSensor pin to low
+  
+  digitalWrite(9,HIGH);     //search for network
+   delay(1000);
+  digitalWrite(9, LOW);
+    delay(5000);
+    
 //for serial monitor
  delay(100);
   Serial1.print("AT+CMGF=1\r");
@@ -60,7 +66,7 @@ void setup() {
     
    // Serial1.flush();
     Serial.println("ok");
-     while(Serial.available()>0)
+     while(Serial.available()>0)   //clear the serial buffer
       Serial1.read();
   
 }
@@ -76,12 +82,13 @@ void loop() {
     }
     delay(10);
 
- // getTempAndGasAvg();
-
   fuelLevel = analogRead(fuelLevelSensor); //take a sample of the fuel level
-  Serial.print(fuelLevel); //print the fuel level
-  checkFuelLevel(fuelLevel); //function to determine when to send sms
-
+  Serial.println(fuelLevel);
+  fuelLevel = 1000 - fuelLevel;    //convert the high to low and low to high
+  fuelLevel *= 0.1413;    //convert to percentage
+  Serial.println(fuelLevel); //print the fuel level
+ // checkFuelLevel(fuelLevel); //function to determine when to send sms
+delay(2000);
   analogReadTemp = analogRead(tempSensor);    //Tell the Arduino to read the voltage on pin A0
   gasValue = analogRead(gasSensor);   // Tell the Arduino to read the voltage on pin A1
   temperature = (5.0 * analogReadTemp)/1023.0; // Convert the read value into a voltage
@@ -91,23 +98,30 @@ void loop() {
   //-------------------
   if(Serial1.available() > 0){
         String getline = Serial1.readString();
-       Serial.println("waiting");
+//       Serial.println(getline);
+//       Serial.println(getline);
         int b = getline.indexOf("+CMT");
         int c = getline.indexOf("!");
             if(b >= 0 && c >= 0){
+             // Serial.println(getline);
                 int j = 0;
                 for(int i =b+6 ; i < c;i++){
                      tempChars[j++] = getline[i];
                  }
-          
+            
                  tempChars[j] = '\0';  //terminate the line
+               // Serial.println(tempChars);
                  getline = "";        //empty the string
                   
                    parseData();
                   showParsedData();
                   dataProcessing();
+                  int i;
+                  for(i = 0 ; i < 30; i++);
+                    Serial.print(EEPROM.read(i));
+                  Serial.println();
           
-                  delay(10); //tempChars.replace(tempChars,"");
+                  delay(100); 
               }
 
        }
@@ -124,42 +138,37 @@ void loop() {
   lcd.setCursor(0, 1);
   lcd.print("Gas: ");
   lcd.print(gasValue);
-//  
-//  String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0") + ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
-//  Serial.println("Sending SMS");
-//  sendsms(dataToSend);
-//  Serial.println("SMS sent");
-  if (checkSmokeState()){
-    digitalWrite(buzzer, HIGH);
-  }
-  else{
-    digitalWrite(buzzer, LOW);
-  }
 
-  int temperatureState = checkTemperatureState();
-  if (temperatureState){
-    // if above threshold
-    if (temperatureState == 2) {
-      digitalWrite(fan, HIGH);
-      Serial.println("Temperature above Threshold");
-    }
-
-    else {
-      digitalWrite(fan, LOW);
-    }
-    // if below threshold
-    if (temperatureState == 1) {
-      
-    }
-    else {
-      
-    }
-  }
-
-  else {
-    digitalWrite(fan, LOW);
-  }
-
+////check the smoke
+//  if (checkSmokeState() == 1){
+//    digitalWrite(buzzer, HIGH);
+//    digitalWrite(fan, HIGH);
+//  }
+//  else if (checkSmokeState() == 2){           //turn on only fan
+//      digitalWrite(fan, HIGH);
+//      Serial.println("Temperature above Threshold");
+//  }
+//  else{
+//    digitalWrite(buzzer, LOW);
+//    digitalWrite(fan, LOW);
+//  }
+//
+////check the temperature
+//  int temperatureState = checkTemperatureState();
+//  if (temperatureState == 1){        //turn on buxzer and fan 
+//      digitalWrite(fan, HIGH);
+//      digitalWrite(buzzer, HIGH);
+//      Serial.println("Temperature above Threshold");
+//  }
+// else if (temperatureState == 2){           //turn on only fan
+//      digitalWrite(fan, HIGH);
+//      Serial.println("Temperature above Threshold");
+//  }
+//    else {
+//      digitalWrite(fan, LOW);
+//      digitalWrite(buzzer, HIGH);
+//    }
+//    
  
 
     delay(8000);
@@ -175,13 +184,61 @@ void loop() {
  */
 
 int checkTemperatureState(){
-  if(temperature > tempThresholdMax){
+  if(temperature >= 20 && temperature <= 27){   //checking for normal values
+    if(alert[1] != 0)
+      alert[1] = 0;
+    return 0;
+  }
+
+  else if(temperature > 27 && temperature <= 41){   //checking for warning values
+    if(alert[1] != 1){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[1] = 0;
+      }
     return 2;
   }
-  if(temperature < tempThresholdMax){
+
+  else if(temperature > 41 && temperature <= 48){   //checking for error values
+    if(alert[1] != 2){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[1] = 2;
+      }
+    return 2;
+  }
+
+  else if(temperature > 48 && temperature <= 55){   //checking for critical values
+    if(alert[1] != 3){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[1] = 3;
+      }
+    return 2;
+  }
+
+  else if(temperature > 55 && temperature <= 62){   //checking for alert values
+    if(alert[1] != 4){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[1] = 4;
+      }
+    return 2;
+  }
+
+  else if(temperature >=62){  
+    if(alert[1] != 5){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[1] = 5;
+      }
     return 1;
   }
-  return 0;
 }
 
 /*
@@ -190,59 +247,136 @@ int checkTemperatureState(){
  * 1 means smoke detected and 0 means no smoke
  */
 int checkSmokeState(){
-  if(gasValue > smokeThresholdMax){
+ if(gasValue >= 20 && gasValue <= 40){  
+    if(alert[2] != 0)
+      alert[2] = 0;
+    return 0;
+  }
+
+  else if(gasValue > 40 && gasValue <= 60){  
+    if(alert[2] != 1){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[2] = 1;
+      }
+    return 2;
+  }
+
+  else if(gasValue > 60 && gasValue <= 80){  
+    if(alert[2] != 2){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[2] = 2;
+      }
     return 1;
   }
-  return 0;
+
+  else if(gasValue > 80 && gasValue <= 100){  
+    if(alert[2] != 3){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[2] = 3;
+      }
+    return 1;
+  }
+
+  else if(gasValue > 100 && gasValue <= 200){  
+    if(alert[2] != 4){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[2] = 4;
+      }
+    return 1;
+  }
+
+  else if(gasValue >= 200){  
+    if(alert[2] != 5){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[2] = 5;
+      }
+    return 1;
+  }
 }
 
-int  checkFuelLevel(int s){
-  if(s >= 1000) {
-   Serial.println("NO FUEL LEFT");
-  return 0;
+void checkFuelLevel(int s){
+//  s = 1008 - s;    //convert the high to low and low to high
+//  s *= 0.1413;    //convert to percentage
+
+Serial.print(s);
+Serial.println("%");
+   if(s <= 100 && s >= 50){   //checking for normal values
+    if(alert[3] != 0)
+      alert[3] = 0;
   }
-  if(s < 1000 && s >= 600) { 
-   Serial.println("fuel level is too low");
-  return 0;
+
+  else if(s < 50 && s >= 30){     //checking for warning values 
+    if(alert[3] != 1){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[3] = 1;
+      }
   }
-  if(s < 600 && s >= 500) {
-   Serial.println("fuel level is moderate"); 
-  return 1;
+
+  else if(s <30 && s >=20){     //checking for error values
+    if(alert[3] != 2){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[3] = 2;
+      }
   }
-  if(s < 500) {
-   Serial.println("there is enough fuel in tank");
-   return 1;
+
+  else if(s < 20 && s >=10){    //checking for critical values
+    if(alert[3] != 3){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[3] = 3;
+      }
   }
+
+  else if(s < 10 && s >=5){    //checking for alert
+    if(alert[3] != 4){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[3] = 4;
+      }
+
+  }
+
+  else if(s < 5){              //checkign for emergency values
+    if(alert[3] != 5){
+      String dataToSend = "temp="+String(temperature)+",fuel="+String(fuelLevel)+",motion="+(motion?"1":"0");
+          dataToSend +=  ",battery="+String(batteryLevel)+",voltages="+String(voltage)+",generator="+String(generator)+",gas="+String(gasValue);
+          sendsms(dataToSend);
+      alert[3] = 5;
+      }
+
+  }
+
+  
  }
 
-void getTempAndGasAvg(){
-  float temp = 0.0;
-  int gas = 0;
-  for (int i = 0; i < 10; i++) {
-     temp += getTemperature();
-     gas += getGasLevel();
-     delay(500);
-  }
-  temperature = temp/10;
-  gasValue = gas/10;
- }
+//int getGasLevel(){
+//  int gas = analogRead(gasSensor);   // Tell the Arduino to read the voltage on pin A1
+//  return gas;
+//}
 
-float getTemperature(){
-  analogReadTemp = analogRead(tempSensor);    //Tell the Arduino to read the voltage on pin A0
-  float tempe = (5.0 * analogReadTemp)/1023.0; // Convert the read value into a voltage
-  tempe /= 0.01;
-  return tempe;
-}
 
-int getGasLevel(){
-  int gas = analogRead(gasSensor);   // Tell the Arduino to read the voltage on pin A1
-  return gas;
-}
 
 void parseData() {      // split the data into its parts
 
     char * strtokIndx; // this is used by strtok() as an index
-
+    char date[25] = {0};
+char empty[3] = {0};
     strtokIndx = strtok(tempChars,",");      // get the first part - the string
     strcpy(phoneNumber, strtokIndx); // copy it to messageFromPC
  
@@ -266,13 +400,13 @@ void parseData() {      // split the data into its parts
 void showParsedData() {
     Serial.print("number ");
     Serial.println(phoneNumber);
-    Serial.print("date is ... ");
-    Serial.println(date);
+//    Serial.print("date is ... ");
+//    Serial.println(date);
      Serial.print("content ");
     Serial.println(tempChars);
 }
 int validateNumber(){    //this function will check if the sender is authorised to communicate with the system
-  if(strcmp(phoneNumber, "\"+237650931636\"")==0||strcmp(phoneNumber,"\"+237650931636\"")==0)
+  if(strcmp(phoneNumber, "\"+237650931636\"")==0||strcmp(phoneNumber,"\"+237671906987\"")==0)
     return 1;
    else return 0;
  // return 1:strcmp(phoneNumber, authorised)==0||strcmp(phoneNumber,authorised2)==0?0;    //return 1 if valid and 0 otherwise
@@ -292,9 +426,20 @@ int validateNumber(){    //this function will check if the sender is authorised 
   }//close parse Message
 
 int writeToEEProm(){  //this function writes to eeprom incase message is a request to store threshold
-    if(threshold[0] == 1){return 1;}   //initiallise the eeprom starting from index 1 of the array and return 1 when done
+  Serial.print("threshold value are: ");
+  //Serial.println(String(threshold));
+    if(threshold[0] == 1){ //initiallise the eeprom starting from index 1 of the array and return 1 when done
+      for (int i = 0; i < 30; i++) {
+        EEPROM.put(i, threshold[i+1]);
+      }
+      
+      return 1;
+      }   
     if(threshold[0] == 0){return 2;} //update the eeprom starting from index 1 of the array and return two when done
     else{
+      for (int i = 0; i < 30; i++) {
+        EEPROM.put(i, threshold[i+1]);
+      }
       return 0;  //could not understand request
      }
   }

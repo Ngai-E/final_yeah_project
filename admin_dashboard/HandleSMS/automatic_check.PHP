@@ -1,19 +1,18 @@
 <?php
-require('config.php');//file for database connections
+require('../config.php');//file for database connections
 require('smsClass.php'); //class file for sms commands
 
-$phoneNumber = "+237650931636" //set the phone number of the site expecting
-
+$phoneNumber = "+237650731636" ;//set the phone number of the site expecting
+$send = 0;
 //creating an sms object
-	$gsm_sms = new gsm_sms();
-	$gsm_sms->debug = false;
-	$gsm_sms->port = 'COM7';
-	$gsm_sms->baud = 9600;
-	$gsm_sms->init();
+	$gsm_send_sms = new gsm_sms();
+	$gsm_send_sms->debug = false;
+	$gsm_send_sms->port = 'COM5';
+	$gsm_send_sms->baud = 9600;
+	$gsm_send_sms->init();
 
-while(1) {
 	# code...
-	$read = $gsm_sms->read();      //protocol to check send and receive sms
+	$read = $gsm_send_sms->read();      //protocol to check send and receive sms
 	if(count($read)>0){   //check if there is an sms
 		for($i = 0; $i < count($read); $i++){
 			if($read[$i]['sender'] == $phoneNumber){    //check if the number is authorized to send 
@@ -38,15 +37,22 @@ while(1) {
 
 			      $result = mysqli_query($conn, $sql); //execute query
 			      	
-			      if (!$result) {
-			          //if data was not inserted succesfully
-			      	die('Could not enter data: ' . mysqli_error($conn));
-			           
-			      }
+				      if (!$result) {
+				          //if data was not inserted succesfully
+				      	die('Could not enter data: ' . mysqli_error($conn));
 
-			      } else {
-			          echo "New record created successfully";
-			      }
+				           
+				      	}
+
+				      	else echo "data saved succesfully";
+
+				      	mysqli_close($conn);
+
+			}
+
+			else 
+				echo "not authorised to send"; 
+		}
 
 
 				/***************************************
@@ -54,24 +60,23 @@ while(1) {
 				****************************************/
 
 
-			}else {  //if not from pemitted number
-				; //ignore the message we dont need it
-			}
-
-			mysqli_close($conn);
+	}
 			
-		}
+		
+		else {  //if not from pemitted number
+				echo "no new messages"; //ignore the message we dont need it
+			}
 
 
 		//delay after check
 		usleep(1000000);  //sleep for 1s 
 
-		if ($send != 1) {
+		if ($send != 0) {
 		# code... to send
 		if($send == 1)
-			$status = $gsm_sms->send($mobile_number,"GET"); //get data
+			$status = $gsm_send_sms->send($mobile_number,"GET"); //get data
 		if($send == 2)
-			$status = $gsm_sms->send($mobile_number,"threshold"); //get the threshold
+			$status = $gsm_send_sms->send($mobile_number,"threshold"); //get the threshold
 
 		if ($status) {
 			echo "data sent successfully";
@@ -81,10 +86,10 @@ while(1) {
 
 	}                //check is there is an incoming request to send message
 
-
+	$gsm_send_sms->close();
 	//delay after check
 	usleep(1000000);  //sleep for 1s before checking again
 		
-	}
+	
 	
 ?>
