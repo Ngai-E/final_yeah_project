@@ -9,7 +9,7 @@
 # Create your instance of the SerialPort Class
 $serialPort = new-Object System.IO.Ports.SerialPort
 # Set various COM-port settings
-$serialPort.PortName = "COM5"
+$serialPort.PortName = "COM1"
 $serialPort.BaudRate = 9600
 $serialPort.WriteTimeout = 500
 $serialPort.ReadTimeout = 3000

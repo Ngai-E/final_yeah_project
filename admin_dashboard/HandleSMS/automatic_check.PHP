@@ -7,7 +7,7 @@ $send = 0;
 //creating an sms object
 	$gsm_send_sms = new gsm_sms();
 	$gsm_send_sms->debug = false;
-	$gsm_send_sms->port = 'COM5';
+	$gsm_send_sms->port = 'COM1';
 	$gsm_send_sms->baud = 9600;
 	$gsm_send_sms->init();
 
