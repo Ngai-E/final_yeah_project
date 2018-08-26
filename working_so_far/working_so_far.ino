@@ -7,7 +7,7 @@
 
 SoftwareSerial Serial1(7, 8);
 
-char  tempChars[180];        // temporary array for use when parsing
+char  tempChars[100];        // temporary array for use when parsing
 char phoneNumber[22] = {0};
 int threshold[31] = {6};
 
