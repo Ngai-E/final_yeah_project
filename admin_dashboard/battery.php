@@ -37,7 +37,7 @@
       ********************************************************************/
       $normal=$error=$warning=$alert=$emergency=$critical = "";//initialising the threshold values
 
-      $sql = "SELECT * FROM parameter_threshold WHERE parameter_name = 'fuel_level' ";//statement to be executed
+      $sql = "SELECT * FROM parameter_threshold WHERE parameter_name = 'battery_charge' ";//statement to be executed
 
       $result = mysqli_query($conn, $sql); //execute query
       
@@ -64,12 +64,15 @@
         outputing fault values in the past week begins here
       *******************************************************/
         $s = date("l",strtotime("today"));   //takes the date of today and get the day in a string.
+       // echo "last $s";
         $d=strtotime("last $s");  //converts the human readable string to date format e.g if today if friday, it will convert
+        //echo "$d";
         $s1 = date("Y-m-d H:i:s", $d); //'last friday' to date in the format specified 'Y-m-d H:i:s'
+       //echo "$s1";
         $warning_amount = $error_amount =$critical_amount=$emergency_amount=$alert_amount= 0;
 
         //read the logs from last week
-        $sql = "SELECT * FROM `logs` WHERE `parameter_name` = 'battery_charge' && `time` > '$s1' && `value` <= 50 ORDER BY `time` ASC" ; //the query
+        $sql = "SELECT `battery`, `time` FROM `logs1` WHERE `time` > '$s1' && `battery` >= '$warning' ORDER BY `time` ASC" ; //the query
         $number = 1;
         $result = mysqli_query($conn, $sql);//execute query
         $append = "";
@@ -80,31 +83,31 @@
                $append .=  ' <tr>
                                   <td>'.$number++. '</td>
                                   <td>'.$row["time"].'</td>';
-                if( $row["value"] >= 30 && $row['value'] <= 50  ){
+                if( $row['battery'] >= $warning && $row['battery'] < $error  ){
                   $append .= '<td>warning</td>
                                   <td><span class="badge" style="background-color: #7a9a51"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $warning_amount++;
                 }
-                elseif ($row["value"] > 20 && $row['value'] <=30  ) {
+                elseif ($row['battery'] >= $error && $row['battery'] < $critical  ) {
                   $append .= '<td>error</td>
                                   <td><span class="badge" style="background-color: #41cac0"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $error_amount++;
                 }
-                elseif ($row["value"] >10 && $row['value'] <= 20  ) {
+                elseif ($row['battery'] >= $critical && $row['battery'] < $alert  ) {
                   $append .= '<td>critical</td>
                                   <td><span class="badge" style="background-color: #2A3542"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $critical_amount++;
                 }
-                elseif ($row["value"] >5 && $row['value'] <=10  ) {
+                elseif ($row['battery'] >= $alert && $row['battery'] < $emergency  ) {
                   $append .= '<td>alert</td>
                                   <td><span class="badge" style="background-color: #FCB322"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $alert_amount++;
                 }
-                elseif ($row["value"] <5  ) {
+                elseif ($row['battery'] >= $emergency  ) {
                   $append .= '<td>emergency</td>
                                   <td><span class="badge" style="background-color: #ff6c60"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
@@ -123,14 +126,14 @@
       /**************************************
         plotting the graph with values from db
       ****************************************/
-         $sql = "SELECT * FROM `logs` WHERE `time` > '2018-10-03 15:00:00' && `parameter_name` = 'battery_charge' "; //query for ploting graph
+         $sql = "SELECT `battery` FROM `logs1` WHERE `time` > '$s1'"; //query for ploting graph
          $result = mysqli_query($conn, $sql); //execute query
          if (mysqli_num_rows($result) > 0) {
             echo "<script> var arraygraph = [];</script>";   //used to plot graph
             echo "<script> var labelgraph = [];</script>";   //used to plot graph
-            // store the values of temperature in an array
+            // store the values of battery in an array
             while($row = mysqli_fetch_assoc($result)) {
-              echo "<script> arraygraph.push(".$row['value'].");</script>"; 
+              echo "<script> arraygraph.push(".$row['battery'].");</script>"; 
               echo "<script> labelgraph.push(' ');</script>"; 
 
             }

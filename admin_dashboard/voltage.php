@@ -1,3 +1,4 @@
+<?php session_start();?>
 <!DOCTYPE html>
 <html lang="en" class="loading">
   <head>
@@ -33,7 +34,14 @@
   <?php 
       require ('config.php'); //contains the database connection
 
-      
+      $_SESSION["send"] = "1";
+      echo "Session variables are set.";
+
+      if(isset($_GET['send'])){ 
+        //echo " got it";
+        $_SESSION["send"] = "1";
+        header("location: temp_log.php");
+      }
 
       /*******************************************************
         outputing fault values in the past week begins here
@@ -44,7 +52,7 @@
         $warning_amount = $emergency_amount= $error_amount=0;
 
         //read the logs from last week
-        $sql = "SELECT * FROM `logs` WHERE `parameter_name` = 'voltage' && `time` > '$s1' ORDER BY `time` ASC" ; //the query
+        $sql = "SELECT voltages, `time` FROM `logs1` WHERE `time` > '$s1' ORDER BY `time` ASC" ; //the query
         $number = 1;
         $result = mysqli_query($conn, $sql);//execute query
         $append = "";
@@ -55,16 +63,16 @@
                $append .=  ' <tr>
                                   <td>'.$number++. '</td>
                                   <td>'.$row["time"].'</td>';
-                if( $row["value"] == 1  ){
+                if( $row["voltages"] == 1  ){
                   $append .= '<td>Normal</td></tr> ';
                   $warning_amount++;
                 }
                 
-                elseif ($row["value"] == 0  ) {
+                elseif ($row["voltages"] == 0  ) {
                   $append .= '<td>low</td></tr> ';
                   $emergency_amount++;
                 }
-                elseif ($row["value"] == 2  ) {
+                elseif ($row["voltages"] == 2  ) {
                   $append .= '<td>High</td></tr> ';
                   $error_amount++;
                 }
@@ -81,14 +89,14 @@
       /**************************************
         plotting the graph with values from db
       ****************************************/
-         $sql = "SELECT * FROM `logs` WHERE `time` > '$s1' && `parameter_name` = 'voltage' "; //query for ploting graph
+         $sql = "SELECT voltages FROM `logs1` WHERE `time` > '$s1' "; //query for ploting graph
          $result = mysqli_query($conn, $sql); //execute query
          if (mysqli_num_rows($result) > 0) {
             echo "<script> var arraygraph = [];</script>";   //used to plot graph
             echo "<script> var labelgraph = [];</script>";   //used to plot graph
             // store the values of smoke in an array
             while($row = mysqli_fetch_assoc($result)) {
-              echo "<script> arraygraph.push(".$row['value'].");</script>"; 
+              echo "<script> arraygraph.push(".$row['voltages'].");</script>"; 
               echo "<script> labelgraph.push(' ');</script>"; 
 
             }
@@ -142,7 +150,10 @@
                               </div>
                             <p>Voltage is OK. Relax.</p>
                           </div>
-                          <button type="button" class="btn btn-primary btn-lg btn-block">Get Current Value</button>
+                         <form action="" method="GET">
+                            <input type="hidden" name="send" value="GET">
+                            <button type="submit" class="btn btn-primary btn-lg btn-block">Get Current Value</button>
+                          </form>
                         </div>
                         <!-- querry current state at the site ends here -->
 

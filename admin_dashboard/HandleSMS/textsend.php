@@ -15,7 +15,7 @@ if(1){
 
     $gsm_send_sms->debug = false;
 
-    $gsm_send_sms->port = 'COM2';
+    $gsm_send_sms->port = 'COM7';
 
     $gsm_send_sms->baud = 9600;
 

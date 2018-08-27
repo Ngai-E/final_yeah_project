@@ -9,7 +9,7 @@
 # Create your instance of the SerialPort Class
 $serialPort = new-Object System.IO.Ports.SerialPort
 # Set various COM-port settings
-$serialPort.PortName = "COM1"
+$serialPort.PortName = "COM45"
 $serialPort.BaudRate = 9600
 $serialPort.WriteTimeout = 500
 $serialPort.ReadTimeout = 3000
@@ -18,7 +18,7 @@ $serialPort.Close()
 # Open the connection
 $serialPort.Open()
 # Add variables for phone number and the message.
-$phoneNumber = "650931636"
+$phoneNumber = "670201203"
 $textMessage = "NGAI RELAX!"
 try {
  $serialPort.Open()

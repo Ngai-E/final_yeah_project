@@ -180,7 +180,7 @@ class gsm_sms{
        
         $arr = explode("+CMGL:", $this->buffer);   //converting string to array separated separated by +CMGL in the form
         
-        fputs($this->fp, 'AT+CMGD=1,4' . "\r"); //delete all messages after reading
+        //fputs($this->fp, 'AT+CMGD=1,4' . "\r"); //delete all messages after reading
           //Wait for confirmation
         $status = $this->wait_reply("OK\r\n", 5);                                    //arr = ['index,status,number,date,message']
         
@@ -195,8 +195,7 @@ class gsm_sms{
             $id = $headArr[0]; //the index of the received message
 
             $date = str_replace('"', null, $headArr[4])." ".str_replace('"', null, $headArr[5]); //returns the date eg 
-                                                                                                // 18/08/15 23:22:17+04
-            // txt
+             // txt
             $txt = str_replace("'", null, $arrItem[1]);  //returns the message eg hello without quotes
 
             $inbox[] = array('id' => $id, 'sender' => $fromTlfn, 'text' => $txt, 'date' => $date); //put sms in array

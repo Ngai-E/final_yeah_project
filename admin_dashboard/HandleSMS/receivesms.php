@@ -1,7 +1,8 @@
 <?php
-while(1){
+$x = 1;
+while($x == 1){
 	exec('mode COM7: baud=9600 data=8 stop=1 parity=n xon=on');
-		if ($ser=fopen("COM5:","r+")) 
+		if ($ser=fopen("COM7:","r+")) 
 		{
 		 $ret="";
 
@@ -12,10 +13,10 @@ while(1){
 		 // usleep(500000);
 
 
-		 fputs( $ser, 'AT+CMGL="ALL"'. "\r"); //1    
+		 fputs( $ser, 'AT+CMGL="ALL'. "\r"); //1    
 		 usleep(500000);
 		 
-		  fputs( $ser, 'AT+CMGD=1,4' . "\r");     //delay after deleting all messages
+		 fputs( $ser, 'AT+CMGD=1,4' . "\r");     //delay after deleting all messages
 		  usleep(500000);
 
 		 while(!feof($ser)){
@@ -35,6 +36,7 @@ while(1){
 
 echo date('y-m-d h:i:s', strtotime('18/08/16 11:57:03'));
 echo "\n"."done";
+$x = 2;
 usleep(500000);
 }
 ?>

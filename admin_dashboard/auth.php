@@ -44,7 +44,7 @@
         $warning_amount = $emergency_amount=0;
 
         //read the logs from last week
-        $sql = "SELECT * FROM `logs` WHERE `parameter_name` = 'auth' && `time` > '$s1' ORDER BY `time` ASC" ; //the query
+        $sql = "SELECT auth, `time` FROM `logs1` WHERE `time` > '$s1' ORDER BY `time` ASC" ; //the query
         $number = 1;
         $result = mysqli_query($conn, $sql);//execute query
         $append = "";
@@ -55,12 +55,12 @@
                $append .=  ' <tr>
                                   <td>'.$number++. '</td>
                                   <td>'.$row["time"].'</td>';
-                if( $row["value"] == 1  ){
+                if( $row["auth"] == 1  ){
                   $append .= '<td>ON</td></tr> ';
                   $warning_amount++;
                 }
                 
-                elseif ($row["value"] == 0  ) {
+                elseif ($row["auth"] == 0  ) {
                   $append .= '<td>OFF</td></tr> ';
                   $emergency_amount++;
                 }
@@ -77,14 +77,14 @@
       /**************************************
         plotting the graph with values from db
       ****************************************/
-         $sql = "SELECT * FROM `logs` WHERE `time` > '$s1' && `parameter_name` = 'auth' "; //query for ploting graph
+         $sql = "SELECT auth FROM `logs1` WHERE `time` > '$s1'"; //query for ploting graph
          $result = mysqli_query($conn, $sql); //execute query
          if (mysqli_num_rows($result) > 0) {
             echo "<script> var arraygraph = [];</script>";   //used to plot graph
             echo "<script> var labelgraph = [];</script>";   //used to plot graph
             // store the values of smoke in an array
             while($row = mysqli_fetch_assoc($result)) {
-              echo "<script> arraygraph.push(".$row['value'].");</script>"; 
+              echo "<script> arraygraph.push(".$row['auth'].");</script>"; 
               echo "<script> labelgraph.push(' ');</script>"; 
 
             }

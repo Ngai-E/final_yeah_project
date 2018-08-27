@@ -1,3 +1,4 @@
+<?php session_start();?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -28,27 +29,36 @@
 
   <body>
 
-  <?php 
+ <?php 
       require ('config.php'); //contains the database connection
+
+      $_SESSION["send"] = "1";
+      echo "Session variables are set.";
+
+      if(isset($_GET['send'])){ 
+        //echo " got it";
+        $_SESSION["send"] = "1";
+        header("location: temp_log.php");
+      }
 
       /********************************************************************
       this section selects threshold values from database and outputs
       ********************************************************************/
       $normal=$error=$warning=$alert=$emergency=$critical = "";//initialising the threshold values
 
-      $sql = "SELECT * FROM `parameter_threshold` WHERE `parameter_name` = 'smoke' ";//statement to be executed
+      $sql = "SELECT * FROM parameter_threshold WHERE parameter_name = 'smoke' ";//statement to be executed
 
       $result = mysqli_query($conn, $sql); //execute query
       
       if (mysqli_num_rows($result) == 1) {
           //select the threshold values from the returned string
          while($row = mysqli_fetch_assoc($result)) {
-            $normal = $row['normal_value'];
-            $warning = $row['warning_value'];
-            $error = $row['error_value'];
-            $critical = $row['critical_value'];
-            $alert = $row['alert_value'];
-            $emergency = $row['emergency'];
+            $normal = $row['normal_value'] * 10;
+            $warning = $row['warning_value'] * 10;
+            $error = $row['error_value'] * 10;
+            $critical = $row['critical_value'] * 10;
+            $alert = $row['alert_value'] * 10;
+            $emergency = $row['emergency'] * 10;
            
       }
 
@@ -63,12 +73,15 @@
         outputing fault values in the past week begins here
       *******************************************************/
         $s = date("l",strtotime("today"));   //takes the date of today and get the day in a string.
+       // echo "last $s";
         $d=strtotime("last $s");  //converts the human readable string to date format e.g if today if friday, it will convert
+        //echo "$d";
         $s1 = date("Y-m-d H:i:s", $d); //'last friday' to date in the format specified 'Y-m-d H:i:s'
+       //echo "$s1";
         $warning_amount = $error_amount =$critical_amount=$emergency_amount=$alert_amount= 0;
 
         //read the logs from last week
-        $sql = "SELECT * FROM `logs` WHERE `parameter_name` = 'smoke' && `time` > '$s1' && `value` >= 40 ORDER BY `time` ASC" ; //the query
+        $sql = "SELECT `smoke`, `time` FROM `logs1` WHERE `time` > '$s1' && `smoke` >= '$warning' ORDER BY `time` ASC" ; //the query
         $number = 1;
         $result = mysqli_query($conn, $sql);//execute query
         $append = "";
@@ -79,31 +92,31 @@
                $append .=  ' <tr>
                                   <td>'.$number++. '</td>
                                   <td>'.$row["time"].'</td>';
-                if( $row["value"] >= 40 && $row['value'] < 60  ){
+                if( $row['smoke'] >= $warning && $row['smoke'] < $error  ){
                   $append .= '<td>warning</td>
                                   <td><span class="badge" style="background-color: #7a9a51"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $warning_amount++;
                 }
-                elseif ($row["value"] >= 60 && $row['value'] < 80  ) {
+                elseif ($row['smoke'] >= $error && $row['smoke'] < $critical  ) {
                   $append .= '<td>error</td>
                                   <td><span class="badge" style="background-color: #41cac0"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $error_amount++;
                 }
-                elseif ($row["value"] >= 80 && $row['value'] < 100  ) {
+                elseif ($row['smoke'] >= $critical && $row['smoke'] < $alert  ) {
                   $append .= '<td>critical</td>
                                   <td><span class="badge" style="background-color: #2A3542"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $critical_amount++;
                 }
-                elseif ($row["value"] >= 100 && $row['value'] < 200  ) {
+                elseif ($row['smoke'] >= $alert && $row['smoke'] < $emergency  ) {
                   $append .= '<td>alert</td>
                                   <td><span class="badge" style="background-color: #FCB322"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
                   $alert_amount++;
                 }
-                elseif ($row["value"] >= 200  ) {
+                elseif ($row['smoke'] >= $emergency  ) {
                   $append .= '<td>emergency</td>
                                   <td><span class="badge" style="background-color: #ff6c60"><b style="visibility: hidden;">5</b></span></td>
                               </tr> ';
@@ -122,14 +135,14 @@
       /**************************************
         plotting the graph with values from db
       ****************************************/
-         $sql = "SELECT * FROM `logs` WHERE `time` > '2018-10-03 15:00:00' && `parameter_name` = 'smoke' "; //query for ploting graph
+         $sql = "SELECT `smoke` FROM `logs1` WHERE `time` > '$s1'"; //query for ploting graph
          $result = mysqli_query($conn, $sql); //execute query
          if (mysqli_num_rows($result) > 0) {
             echo "<script> var arraygraph = [];</script>";   //used to plot graph
             echo "<script> var labelgraph = [];</script>";   //used to plot graph
             // store the values of smoke in an array
             while($row = mysqli_fetch_assoc($result)) {
-              echo "<script> arraygraph.push(".$row['value'].");</script>"; 
+              echo "<script> arraygraph.push(".$row['smoke'].");</script>"; 
               echo "<script> labelgraph.push(' ');</script>"; 
 
             }
@@ -189,7 +202,7 @@
                               <tbody>
                               <tr>
                                   <td><a href="basic_table.html#">normal</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone"><?php echo $normal;?></td>
                                   <th><span class="badge" style="background-color: #27ef17"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke level from this value below is normal and</span></td>
                                   <td>
@@ -199,7 +212,7 @@
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">warning</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone"> <?php echo $warning;?></td>
                                   <th><span class="badge" style="background-color: #7a9a51"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke increase above this value should signal operator and turn on fan</span></td>
                                   <td>
@@ -209,7 +222,7 @@
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">error</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone"><?php echo $error;?></td>
                                   <th><span class="badge" style="background-color: #41cac0"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke increase above this value should signal operator about possible damage</span></td>
                                   <td>
@@ -219,7 +232,7 @@
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">critical</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone"><?php echo $critical;?></td>
                                   <th><span class="badge" style="background-color: #2A3542"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke increase above this value should signal operator about possible damage</span></td>
                                   <td>
@@ -229,7 +242,7 @@
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">alert</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone"><?php echo $alert;?></td>
                                   <th><span class="badge" style="background-color: #FCB322"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke increase above this value should alert operator about possible damage</span></td>
                                   <td>
@@ -239,7 +252,7 @@
                               </tr>
                               <tr>
                                   <td><a href="basic_table.html#">emergency</a></td>
-                                  <td class="hidden-phone"></td>
+                                  <td class="hidden-phone"><?php echo $emergency;?></td>
                                   <th><span class="badge" style="background-color: #ff6c60"><b style="visibility: hidden;">5</b></span></th>
                                   <td><span class="hidden-phone">smoke increase above this value should signal operator about possible damage</span></td>
                                   <td>
@@ -289,7 +302,10 @@
                               <div class="panel-body text-center" style="width: 100%;height: 230px">
                                   will show a picture here
                           </div>
-                          <button type="button" class="btn btn-primary btn-lg btn-block">Get Current Value</button>
+                          <form action="" method="GET">
+                            <input type="hidden" name="send" value="GET">
+                            <button type="submit" class="btn btn-primary btn-lg btn-block">Get Current Value</button>
+                          </form>
                       </div>
                         <hr>
                       <!-- show the information graphically -->
