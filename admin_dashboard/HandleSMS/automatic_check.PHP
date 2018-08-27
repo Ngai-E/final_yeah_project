@@ -82,10 +82,17 @@ $phoneNumber = "+237670200603" ;//set the phone number of the site expecting
 
 		if ($_SESSION["send"] == "0") {
 		# code... to send
-		if($_SESSION["send"] == "1")
-			$status = $gsm_send_sms->send($mobile_number,"GET"); //get data
-		if($_SESSION["send"] == "2")
+		else if($_SESSION["send"] == "1")
+			$status = $gsm_send_sms->send($mobile_number,"GET!"); //get data
+		else if($_SESSION["send"] == "2"){
+			//querry the db for the new values and send
+
 			$status = $gsm_send_sms->send($mobile_number,"threshold"); //send the threshold
+		}
+
+		}
+		else if($_SESSION["send"] == "3")
+			$status = $gsm_send_sms->send($mobile_number,"START!"); //send 
 
 		if ($status) {
 			echo "message sent successfully";

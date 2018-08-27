@@ -1,3 +1,4 @@
+<?php session_start();?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -33,6 +34,14 @@
   <?php 
       require ('config.php'); //contains the database connection
 
+        $_SESSION["send"] = "1";
+      echo "Session variables are set.";
+
+      if(isset($_GET['send'])){ 
+        //echo " got it";
+        $_SESSION["send"] = "1";
+        header("location: temp_log.php");
+      }
       
 
       /*******************************************************

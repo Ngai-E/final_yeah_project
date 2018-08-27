@@ -1,3 +1,4 @@
+<?php session_start();?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -31,6 +32,15 @@
 
     <?php 
       require ('config.php'); //contains the database connection
+
+      $_SESSION["send"] = "1";
+      echo "Session variables are set.";
+
+      if(isset($_GET['send'])){ 
+        //echo " got it";
+        $_SESSION["send"] = "1";
+        header("location: temp_log.php");
+      }
 
       /********************************************************************
       this section selects threshold values from database and outputs
@@ -296,7 +306,10 @@
                                   will show a picture here
 
                           </div>
-                          <button type="button" class="btn btn-primary btn-lg btn-block">Get Current Value</button>
+                          <form action="" method="GET">
+                            <input type="hidden" name="send" value="GET">
+                            <button type="submit" class="btn btn-primary btn-lg btn-block">Get Current Value</button>
+                          </form>
                       </div> <br>
                       <!-- show the information graphically -->
                           <div class="content-panel">
